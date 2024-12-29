@@ -26,6 +26,18 @@ type Parrafo struct {
 	Descripcion string `json:"descripcion_parrafo"`
 }
 
+type LineaConAcordes struct {
+	Texto   string   `json:"texto"`
+	Acordes []Acorde `json:"acordes"`
+}
+
+type Acorde struct {
+	Codigo    string `json:"codigo"`
+	Ubicacion    int `json:"ubicacion"`
+	Duracion    int `json:"duracion"`
+}
+
+
 var db *sql.DB
 
 func main() {
@@ -54,9 +66,11 @@ func main() {
 	http.HandleFunc("/consulta_letra_cancion", consultaLetraCancionHandler)
 	http.HandleFunc("/consulta_parrafo_cancion", consultaParrafoCancionHandler)
 	http.HandleFunc("/consulta_letra_cifrado_cancion", consultaLetraCifradoCancionHandler)
+	http.HandleFunc("/consulta_lineas_con_acordes", consultaLineasConAcordesHandler)
 
 
-	fmt.Println("Servidor escuchando en el puerto 8080...22:55")
+
+	fmt.Println("Servidor escuchando en el puerto 8080...")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
@@ -117,6 +131,30 @@ func consultaLetraCifradoCancionHandler(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(resultados)
 }
 
+func consultaLineasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	tono := r.URL.Query().Get("tono")
+
+	if id == "" || tono == "" {
+		http.Error(w, "Faltan los parámetros 'id' y/o 'tono'", http.StatusBadRequest)
+		return
+	}
+
+	lineas, err := consultaLineasConAcordes(id, tono)
+	if err != nil {
+		http.Error(w, "Error al obtener las líneas y acordes", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(lineas); err != nil {
+		http.Error(w, "Error al codificar la respuesta", http.StatusInternalServerError)
+		log.Printf("Error al codificar JSON: %v\n", err)
+	}
+}
+
+
+
 
 
 func listaCanciones() ([]Cancion, error) {
@@ -157,7 +195,11 @@ func consultaLetraCancion(id string) ([]Letra, error) {
 }
 
 func consultaParrafoCancion(id string) ([]Parrafo, error) {
-	rows, err := db.Query("SELECT ec.id_estructura_canciones, concat(tl.descripcion,cast(ec.tipo_linea_numero as char(50))) as descripcion_parrafo FROM tipos_linea tl LEFT JOIN estructura_canciones ec ON ec.id_tipo_linea = tl.id WHERE ec.id_canciones = ? order by ec.posicion_estructura", id)
+	rows, err := db.Query(`SELECT ec.id_estructura_canciones, 
+							concat(tl.descripcion,cast(ec.tipo_linea_numero as char(50))) as descripcion_parrafo 
+							FROM tipos_linea tl 
+							LEFT JOIN estructura_canciones ec ON ec.id_tipo_linea = tl.id 
+							WHERE ec.id_canciones = ? order by ec.posicion_estructura`, id)
 	if err != nil {
 		return nil, err
 	}
@@ -227,4 +269,89 @@ func consultaLetraCifradoCancion(id string, tono string) ([]map[string]string, e
 	}
 
 	return resultados, nil
+}
+
+func consultaLineasConAcordes(id string, tono string) ([]LineaConAcordes, error) {
+	queryLineas := `
+		SELECT
+			lc.id_lineas_canciones,
+			lc.texto
+		FROM
+			lineas_canciones lc
+		WHERE
+			lc.id_canciones = ?`
+
+	rows, err := db.Query(queryLineas, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	lineas := make([]*LineaConAcordes, 0)
+	lineaMap := make(map[int]*LineaConAcordes)
+
+	for rows.Next() {
+		var idLinea int
+		var texto string
+		if err := rows.Scan(&idLinea, &texto); err != nil {
+			return nil, err
+		}
+		linea := &LineaConAcordes{
+			Texto:   texto,
+			Acordes: []Acorde{},
+		}
+		lineas = append(lineas, linea)
+		lineaMap[idLinea] = linea
+	}
+
+	queryAcordes := `
+		SELECT
+			al.id_lineas_canciones,
+			al.id_acordes_linea,
+			concat( (SELECT tonalidades.codigo FROM tonalidades WHERE tonalidades.grado = al.grado + ?),
+			        IFNULL(triadas.triadas, ''),
+					IFNULL(extensiones.extensiones, '') ) AS codigo,
+			al.ubicacion,
+			al.duracion
+		FROM
+			acordes_linea al
+		LEFT JOIN
+			triadas ON al.id_triadas = triadas.id_triadas
+		LEFT JOIN
+			extensiones ON al.id_extensiones = extensiones.id_extensiones
+		WHERE
+			al.id_lineas_canciones IN (SELECT lc.id_lineas_canciones FROM lineas_canciones lc WHERE lc.id_canciones = ?)`
+
+	rows, err = db.Query(queryAcordes, tono, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var idLinea, idAcorde int
+		var codigo string
+		var ubicacion int
+		var duracion int
+		if err := rows.Scan(&idLinea, &idAcorde, &codigo, &ubicacion, &duracion); err != nil {
+			return nil, err
+		}
+		if linea, exists := lineaMap[idLinea]; exists {
+			acorde := Acorde{
+				Codigo:    codigo,
+				Ubicacion:    ubicacion,
+				Duracion:    duracion,
+			}
+			linea.Acordes = append(linea.Acordes, acorde)
+		} else {
+			log.Printf("No se encontró línea para idLinea=%d\n", idLinea)
+		}
+	}
+
+	// Convertir slice de punteros a slice de valores para retornar
+	lineasFinal := make([]LineaConAcordes, len(lineas))
+	for i, linea := range lineas {
+		lineasFinal[i] = *linea
+	}
+	return lineasFinal, nil
 }
