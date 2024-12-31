@@ -14,9 +14,9 @@ import (
 type Cancion struct {
 	ID     int    `json:"id_canciones"`
 	Nombre string `json:"nombre"`
-	Tonalidad_sugerida string `json:"nombre"`
-	Tiempo int `json:"nombre"`
-	Autor string `json:"nombre"`
+	Tonalidad_sugerida string `json:"Tonalidad_sugerida"`
+	Tiempo int `json:"tiempo"`
+	Autor string `json:"autor"`
 }
 
 type Letra struct {
@@ -170,7 +170,7 @@ func listaCanciones() ([]Cancion, error) {
 	var canciones []Cancion
 	for rows.Next() {
 		var c Cancion
-		if err := rows.Scan(&c.ID, &c.Nombre,&c.Tonalidad_sugerida,&c.Tiempo,&c.Autor); err != nil {
+		if err := rows.Scan(&c.ID, &c.Nombre, &c.Tonalidad_sugerida, &c.Tiempo, &c.Autor); err != nil {
 			return nil, err
 		}
 		canciones = append(canciones, c)
