@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db:3306
--- Generation Time: Dec 30, 2024 at 09:04 PM
+-- Generation Time: Dec 31, 2024 at 07:31 PM
 -- Server version: 8.4.0
 -- PHP Version: 8.2.8
 
@@ -34,7 +34,7 @@ CREATE TABLE `acordes_linea` (
   `grado` int NOT NULL,
   `id_triadas` int DEFAULT NULL,
   `id_extensiones` int DEFAULT NULL,
-  `duracion` int NOT NULL
+  `duracion` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -57,7 +57,31 @@ INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicaci
 (13, 1, 1, 1, NULL, NULL, 0),
 (14, 2, 1, 1, NULL, NULL, 0),
 (15, 1, 9, 6, NULL, NULL, 0),
-(16, 1, 17, 8, NULL, NULL, 0);
+(16, 1, 17, 8, NULL, NULL, 0),
+(17, 74, 4, 10, 1, NULL, 0),
+(18, 74, 20, 8, NULL, NULL, 0),
+(19, 75, 1, 1, NULL, NULL, 0),
+(20, 75, 15, 6, NULL, NULL, 0),
+(21, 76, 4, 10, 1, NULL, 0),
+(22, 76, 20, 8, NULL, NULL, 0),
+(23, 77, 1, 1, NULL, NULL, 0),
+(24, 77, 15, 6, NULL, NULL, 0),
+(25, 78, 8, 10, 1, NULL, 0),
+(26, 78, 20, 8, NULL, NULL, 0),
+(27, 79, 10, 1, NULL, NULL, 0),
+(28, 79, 25, 6, NULL, NULL, 0),
+(29, 80, 4, 10, 1, NULL, 0),
+(30, 80, 20, 8, NULL, NULL, 0),
+(31, 81, 1, 1, NULL, NULL, 0),
+(32, 81, 15, 6, NULL, NULL, 0),
+(33, 82, 4, 10, 1, NULL, 0),
+(34, 82, 20, 8, NULL, NULL, 0),
+(35, 83, 1, 1, NULL, NULL, 0),
+(36, 83, 15, 6, NULL, NULL, 0),
+(37, 84, 4, 10, 1, NULL, 0),
+(38, 84, 20, 8, NULL, NULL, 0),
+(39, 85, 1, 1, NULL, NULL, 0),
+(40, 85, 15, 6, NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -69,8 +93,8 @@ CREATE TABLE `canciones` (
   `id_canciones` int NOT NULL,
   `nombre` varchar(100) NOT NULL,
   `tonalidad_sugerida` char(1) NOT NULL,
-  `tiempo` int NOT NULL,
-  `autor` varchar(60) NOT NULL
+  `tiempo` int DEFAULT NULL,
+  `autor` varchar(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -80,7 +104,8 @@ CREATE TABLE `canciones` (
 INSERT INTO `canciones` (`id_canciones`, `nombre`, `tonalidad_sugerida`, `tiempo`, `autor`) VALUES
 (1, 'Tu nombre levantaré', '', 0, ''),
 (3, 'El es el Rey', 'G', 0, ''),
-(4, 'La sangre de Jesús', 'C', 0, '');
+(4, 'La sangre de Jesús', 'C', 0, ''),
+(8, 'La única razón de mi adoración', 'C', 80, 'Danilo Montero');
 
 -- --------------------------------------------------------
 
@@ -107,13 +132,17 @@ INSERT INTO `estructura_canciones` (`id_estructura_canciones`, `id_canciones`, `
 (5, 4, 1, 2, 2),
 (6, 4, 1, 3, 3),
 (7, 4, 1, 4, 4),
-(8, 4, 2, 2, 5),
+(8, 4, 2, 1, 5),
 (9, 4, 1, 5, 6),
 (10, 4, 1, 6, 7),
 (11, 4, 2, 2, 8),
 (12, 4, 3, 1, 12),
 (13, 4, 2, 3, 13),
-(14, 4, 3, 2, 14);
+(14, 4, 3, 2, 14),
+(23, 8, 1, 1, 1),
+(24, 8, 3, 1, 2),
+(25, 8, 2, 1, 3),
+(26, 3, 1, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -146,7 +175,6 @@ INSERT INTO `extensiones` (`id_extensiones`, `extensiones`, `nombre`) VALUES
 
 CREATE TABLE `lineas_canciones` (
   `id_lineas_canciones` int NOT NULL,
-  `id_canciones` int NOT NULL,
   `linea_numero` int NOT NULL,
   `texto` varchar(100) NOT NULL,
   `id_estructura_canciones` int NOT NULL
@@ -156,58 +184,70 @@ CREATE TABLE `lineas_canciones` (
 -- Dumping data for table `lineas_canciones`
 --
 
-INSERT INTO `lineas_canciones` (`id_lineas_canciones`, `id_canciones`, `linea_numero`, `texto`, `id_estructura_canciones`) VALUES
-(1, 1, 1, 'Tu nombre levantare', 1),
-(2, 1, 2, 'Me deleito en adorarte', 1),
-(3, 1, 3, 'Te agradezco que en mi vida estés', 1),
-(5, 3, 1, 'El es el rey infinito en poder', 1),
-(6, 3, 2, 'El es el rey de los cielos', 1),
-(7, 3, 3, 'Seré para él siervo fiel', 1),
-(8, 3, 4, 'Pues mi vida compró con su amor', 1),
-(9, 4, 1, 'Un pecador', 4),
-(10, 4, 2, 'Ese es quien era yo', 4),
-(11, 4, 3, 'Miserable y perdido', 4),
-(12, 4, 4, 'Sin ninguna dirección', 4),
-(13, 4, 1, 'Un gran abismo', 5),
-(14, 4, 2, 'Nos quería separar', 5),
-(15, 4, 3, 'Pero cruzaste la distancia', 5),
-(16, 4, 4, 'Me viniste a rescatar', 5),
-(17, 4, 5, 'Ya no hay división', 6),
-(18, 4, 6, 'Un camino se abrió', 6),
-(19, 4, 7, 'Tu trono Dejaste', 6),
-(20, 4, 8, 'Por vivir en mi interior', 6),
-(21, 4, 1, 'Allí en la cruz', 7),
-(22, 4, 2, 'Cargaste mi dolor', 7),
-(23, 4, 3, 'Mi deuda Tú pagaste', 7),
-(24, 4, 4, 'Y me diste salvación', 7),
-(25, 4, 1, 'Te doy gracias por morir por mí', 8),
-(26, 4, 2, 'Te doy gracias nuevo soy en Ti', 8),
-(27, 4, 3, 'Te doy gracias tengo libertad', 8),
-(28, 4, 4, 'Tu sangre derramada el perdón me da', 8),
-(29, 4, 1, 'En mi lugar', 9),
-(30, 4, 2, 'Tu cuerpo herido fue', 9),
-(31, 4, 3, 'A la muerte derrotaste', 9),
-(32, 4, 4, 'Te levantaste con poder', 9),
-(33, 4, 1, 'Ya no hay aguijón', 10),
-(34, 4, 2, 'La vida triunfó', 10),
-(35, 4, 3, 'Y la sangre del cordero', 10),
-(36, 4, 4, 'Transformó mi corazón', 10),
-(37, 4, 1, 'Te doy gracias por morir por mí', 11),
-(38, 4, 2, 'Te doy gracias nuevo soy en Ti', 11),
-(39, 4, 3, 'Te doy gracias tengo libertad', 11),
-(40, 4, 4, 'Tu sangre derramada el perdón me da', 11),
-(41, 4, 1, 'Nada se compara', 12),
-(42, 4, 2, 'Al poder que hay en la sangre de Jesús, Jesús', 12),
-(43, 4, 3, 'Ahora somos hijos', 12),
-(44, 4, 4, 'Redimidos por la sangre de Jesús, Jesús', 12),
-(45, 4, 1, 'Te doy gracias por morir por mí', 13),
-(46, 4, 2, 'Te doy gracias nuevo soy en Ti', 13),
-(47, 4, 3, 'Te doy gracias tengo libertad', 13),
-(48, 4, 4, 'Tu sangre derramada el perdón me da', 13),
-(49, 4, 1, 'A Su nombre gloria', 14),
-(50, 4, 2, 'A Su nombre gloria', 14),
-(51, 4, 3, 'Ya mis maldades Él perdonó', 14),
-(52, 4, 4, 'A Su nombre gloria', 14);
+INSERT INTO `lineas_canciones` (`id_lineas_canciones`, `linea_numero`, `texto`, `id_estructura_canciones`) VALUES
+(1, 1, 'Tu nombre levantare', 1),
+(2, 2, 'Me deleito en adorarte', 1),
+(3, 3, 'Te agradezco que en mi vida estés', 1),
+(5, 1, 'El es el rey infinito en poder', 26),
+(6, 2, 'El es el rey de los cielos', 26),
+(7, 3, 'Seré para él siervo fiel', 26),
+(8, 4, 'Pues mi vida compró con su amor', 26),
+(9, 1, 'Un pecador', 4),
+(10, 2, 'Ese es quien era yo', 4),
+(11, 3, 'Miserable y perdido', 4),
+(12, 4, 'Sin ninguna dirección', 4),
+(13, 1, 'Un gran abismo', 5),
+(14, 2, 'Nos quería separar', 5),
+(15, 3, 'Pero cruzaste la distancia', 5),
+(16, 4, 'Me viniste a rescatar', 5),
+(17, 5, 'Ya no hay división', 6),
+(18, 6, 'Un camino se abrió', 6),
+(19, 7, 'Tu trono Dejaste', 6),
+(20, 8, 'Por vivir en mi interior', 6),
+(21, 1, 'Allí en la cruz', 7),
+(22, 2, 'Cargaste mi dolor', 7),
+(23, 3, 'Mi deuda Tú pagaste', 7),
+(24, 4, 'Y me diste salvación', 7),
+(25, 1, 'Te doy gracias por morir por mí', 8),
+(26, 2, 'Te doy gracias nuevo soy en Ti', 8),
+(27, 3, 'Te doy gracias tengo libertad', 8),
+(28, 4, 'Tu sangre derramada el perdón me da', 8),
+(29, 1, 'En mi lugar', 9),
+(30, 2, 'Tu cuerpo herido fue', 9),
+(31, 3, 'A la muerte derrotaste', 9),
+(32, 4, 'Te levantaste con poder', 9),
+(33, 1, 'Ya no hay aguijón', 10),
+(34, 2, 'La vida triunfó', 10),
+(35, 3, 'Y la sangre del cordero', 10),
+(36, 4, 'Transformó mi corazón', 10),
+(37, 1, 'Te doy gracias por morir por mí', 11),
+(38, 2, 'Te doy gracias nuevo soy en Ti', 11),
+(39, 3, 'Te doy gracias tengo libertad', 11),
+(40, 4, 'Tu sangre derramada el perdón me da', 11),
+(41, 1, 'Nada se compara', 12),
+(42, 2, 'Al poder que hay en la sangre de Jesús, Jesús', 12),
+(43, 3, 'Ahora somos hijos', 12),
+(44, 4, 'Redimidos por la sangre de Jesús, Jesús', 12),
+(45, 1, 'Te doy gracias por morir por mí', 13),
+(46, 2, 'Te doy gracias nuevo soy en Ti', 13),
+(47, 3, 'Te doy gracias tengo libertad', 13),
+(48, 4, 'Tu sangre derramada el perdón me da', 13),
+(49, 1, 'A Su nombre gloria', 14),
+(50, 2, 'A Su nombre gloria', 14),
+(51, 3, 'Ya mis maldades Él perdonó', 14),
+(52, 4, 'A Su nombre gloria', 14),
+(74, 1, 'La única razón de mi adoración', 23),
+(75, 2, 'Eres Tú mi Señor', 23),
+(76, 3, 'El único motivo para vivir', 23),
+(77, 4, 'Eres Tú mi Jesús', 23),
+(78, 1, 'La única verdad esta en Ti', 24),
+(79, 2, 'Eres mi luz y mi salvación', 24),
+(80, 3, 'Todo mi amor eres Tu Señor', 24),
+(81, 4, 'Y por siempre te alabaré', 24),
+(82, 1, 'Eres todo poderoso', 25),
+(83, 2, 'Eres grande y majestuoso', 25),
+(84, 3, 'Eres fuerte invencible', 25),
+(85, 4, 'Y no hay nadie como Tu', 25);
 
 -- --------------------------------------------------------
 
@@ -331,7 +371,6 @@ ALTER TABLE `extensiones`
 --
 ALTER TABLE `lineas_canciones`
   ADD PRIMARY KEY (`id_lineas_canciones`),
-  ADD KEY `id_canciones` (`id_canciones`),
   ADD KEY `id_estructura_canciones` (`id_estructura_canciones`);
 
 --
@@ -360,19 +399,19 @@ ALTER TABLE `triadas`
 -- AUTO_INCREMENT for table `acordes_linea`
 --
 ALTER TABLE `acordes_linea`
-  MODIFY `id_acordes_linea` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id_acordes_linea` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `canciones`
 --
 ALTER TABLE `canciones`
-  MODIFY `id_canciones` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_canciones` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `estructura_canciones`
 --
 ALTER TABLE `estructura_canciones`
-  MODIFY `id_estructura_canciones` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id_estructura_canciones` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `extensiones`
@@ -384,7 +423,7 @@ ALTER TABLE `extensiones`
 -- AUTO_INCREMENT for table `lineas_canciones`
 --
 ALTER TABLE `lineas_canciones`
-  MODIFY `id_lineas_canciones` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+  MODIFY `id_lineas_canciones` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86;
 
 --
 -- AUTO_INCREMENT for table `tipos_linea`
@@ -421,7 +460,6 @@ ALTER TABLE `estructura_canciones`
 -- Constraints for table `lineas_canciones`
 --
 ALTER TABLE `lineas_canciones`
-  ADD CONSTRAINT `lineas_canciones_ibfk_1` FOREIGN KEY (`id_canciones`) REFERENCES `canciones` (`id_canciones`) ON DELETE CASCADE,
   ADD CONSTRAINT `lineas_canciones_ibfk_2` FOREIGN KEY (`id_estructura_canciones`) REFERENCES `estructura_canciones` (`id_estructura_canciones`);
 COMMIT;
 
