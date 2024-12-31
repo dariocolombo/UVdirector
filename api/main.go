@@ -14,6 +14,9 @@ import (
 type Cancion struct {
 	ID     int    `json:"id_canciones"`
 	Nombre string `json:"nombre"`
+	Tonalidad_sugerida string `json:"nombre"`
+	Tiempo int `json:"nombre"`
+	Autor string `json:"nombre"`
 }
 
 type Letra struct {
@@ -158,7 +161,7 @@ func consultaLineasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
 
 
 func listaCanciones() ([]Cancion, error) {
-	rows, err := db.Query("SELECT id_canciones, nombre FROM canciones ORDER BY nombre")
+	rows, err := db.Query("SELECT id_canciones, nombre,tonalidad_sugerida,tiempo,autor FROM canciones ORDER BY nombre")
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +170,7 @@ func listaCanciones() ([]Cancion, error) {
 	var canciones []Cancion
 	for rows.Next() {
 		var c Cancion
-		if err := rows.Scan(&c.ID, &c.Nombre); err != nil {
+		if err := rows.Scan(&c.ID, &c.Nombre,&c.Tonalidad_sugerida,&c.Tiempo,&c.Autor); err != nil {
 			return nil, err
 		}
 		canciones = append(canciones, c)
@@ -176,7 +179,7 @@ func listaCanciones() ([]Cancion, error) {
 }
 
 func consultaLetraCancion(id string) ([]Letra, error) {
-	rows, err := db.Query("SELECT id_estructura_canciones,texto FROM lineas_canciones WHERE id_canciones = ?", id)
+	rows, err := db.Query("SELECT id_estructura_canciones,texto FROM lineas_canciones WHERE id_estructura_canciones in ( select id_estructura_canciones from estructura_canciones where id_canciones = ?)", id)
 	if err != nil {
 		return nil, err
 	}
@@ -279,7 +282,7 @@ func consultaLineasConAcordes(id string, tono string) ([]LineaConAcordes, error)
 		FROM
 			lineas_canciones lc
 		WHERE
-			lc.id_canciones = ?`
+			id_estructura_canciones in ( select id_estructura_canciones from estructura_canciones where id_canciones = ?)`
 
 	rows, err := db.Query(queryLineas, id)
 	if err != nil {
@@ -320,7 +323,7 @@ func consultaLineasConAcordes(id string, tono string) ([]LineaConAcordes, error)
 		LEFT JOIN
 			extensiones ON al.id_extensiones = extensiones.id_extensiones
 		WHERE
-			al.id_lineas_canciones IN (SELECT lc.id_lineas_canciones FROM lineas_canciones lc WHERE lc.id_canciones = ?)`
+			al.id_lineas_canciones IN (SELECT lc.id_lineas_canciones FROM lineas_canciones lc WHERE lc.id_estructura_canciones IN ( select id_estructura_canciones from estructura_canciones where id_canciones = ?))`
 
 	rows, err = db.Query(queryAcordes, tono, id)
 	if err != nil {

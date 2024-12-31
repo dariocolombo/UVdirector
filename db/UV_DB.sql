@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db:3306
--- Generation Time: Dec 26, 2024 at 10:39 PM
+-- Generation Time: Dec 30, 2024 at 09:04 PM
 -- Server version: 8.4.0
 -- PHP Version: 8.2.8
 
@@ -33,26 +33,31 @@ CREATE TABLE `acordes_linea` (
   `ubicacion` int NOT NULL,
   `grado` int NOT NULL,
   `id_triadas` int DEFAULT NULL,
-  `id_extensiones` int DEFAULT NULL
+  `id_extensiones` int DEFAULT NULL,
+  `duracion` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `acordes_linea`
 --
 
-INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`) VALUES
-(1, 5, 1, 10, 1, NULL),
-(2, 5, 18, 6, NULL, NULL),
-(3, 6, 1, 10, 1, NULL),
-(4, 6, 20, 6, NULL, NULL),
-(5, 7, 1, 10, 1, NULL),
-(6, 7, 10, 6, NULL, NULL),
-(7, 8, 8, 1, NULL, NULL),
-(8, 8, 15, 8, NULL, NULL),
-(9, 9, 1, 1, NULL, NULL),
-(10, 10, 4, 10, 1, NULL),
-(11, 11, 6, 6, NULL, NULL),
-(12, 11, 17, 1, NULL, NULL);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(1, 5, 0, 10, 1, NULL, 0),
+(2, 5, 18, 6, NULL, NULL, 0),
+(3, 6, 0, 10, 1, NULL, 0),
+(4, 6, 20, 6, NULL, NULL, 0),
+(5, 7, 0, 10, 1, NULL, 0),
+(6, 7, 10, 6, NULL, NULL, 0),
+(7, 8, 8, 1, NULL, NULL, 0),
+(8, 8, 15, 8, NULL, NULL, 0),
+(9, 9, 1, 1, NULL, NULL, 0),
+(10, 10, 4, 10, 1, NULL, 0),
+(11, 11, 6, 6, NULL, NULL, 0),
+(12, 11, 17, 1, NULL, NULL, 0),
+(13, 1, 1, 1, NULL, NULL, 0),
+(14, 2, 1, 1, NULL, NULL, 0),
+(15, 1, 9, 6, NULL, NULL, 0),
+(16, 1, 17, 8, NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -63,17 +68,19 @@ INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicaci
 CREATE TABLE `canciones` (
   `id_canciones` int NOT NULL,
   `nombre` varchar(100) NOT NULL,
-  `tonalidad_sugerida` char(1) NOT NULL
+  `tonalidad_sugerida` char(1) NOT NULL,
+  `tiempo` int NOT NULL,
+  `autor` varchar(60) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `canciones`
 --
 
-INSERT INTO `canciones` (`id_canciones`, `nombre`, `tonalidad_sugerida`) VALUES
-(1, 'Tu nombre levantaré', ''),
-(3, 'El es el Rey', 'G'),
-(4, 'La sangre de Jesús', 'C');
+INSERT INTO `canciones` (`id_canciones`, `nombre`, `tonalidad_sugerida`, `tiempo`, `autor`) VALUES
+(1, 'Tu nombre levantaré', '', 0, ''),
+(3, 'El es el Rey', 'G', 0, ''),
+(4, 'La sangre de Jesús', 'C', 0, '');
 
 -- --------------------------------------------------------
 
@@ -353,7 +360,7 @@ ALTER TABLE `triadas`
 -- AUTO_INCREMENT for table `acordes_linea`
 --
 ALTER TABLE `acordes_linea`
-  MODIFY `id_acordes_linea` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_acordes_linea` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `canciones`
