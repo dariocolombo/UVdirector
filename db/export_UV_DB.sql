@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db:3306
--- Generation Time: Dec 31, 2024 at 07:31 PM
+-- Generation Time: Jan 03, 2025 at 06:53 PM
 -- Server version: 8.4.0
 -- PHP Version: 8.2.8
 
@@ -59,29 +59,29 @@ INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicaci
 (15, 1, 9, 6, NULL, NULL, 0),
 (16, 1, 17, 8, NULL, NULL, 0),
 (17, 74, 4, 10, 1, NULL, 0),
-(18, 74, 20, 8, NULL, NULL, 0),
+(18, 74, 24, 6, NULL, NULL, 0),
 (19, 75, 1, 1, NULL, NULL, 0),
-(20, 75, 15, 6, NULL, NULL, 0),
+(20, 75, 15, 8, NULL, NULL, 0),
 (21, 76, 4, 10, 1, NULL, 0),
-(22, 76, 20, 8, NULL, NULL, 0),
+(22, 76, 20, 6, NULL, NULL, 0),
 (23, 77, 1, 1, NULL, NULL, 0),
-(24, 77, 15, 6, NULL, NULL, 0),
+(24, 77, 15, 8, NULL, NULL, 0),
 (25, 78, 8, 10, 1, NULL, 0),
-(26, 78, 20, 8, NULL, NULL, 0),
+(26, 78, 20, 6, NULL, NULL, 0),
 (27, 79, 10, 1, NULL, NULL, 0),
-(28, 79, 25, 6, NULL, NULL, 0),
-(29, 80, 4, 10, 1, NULL, 0),
-(30, 80, 20, 8, NULL, NULL, 0),
-(31, 81, 1, 1, NULL, NULL, 0),
-(32, 81, 15, 6, NULL, NULL, 0),
-(33, 82, 4, 10, 1, NULL, 0),
-(34, 82, 20, 8, NULL, NULL, 0),
-(35, 83, 1, 1, NULL, NULL, 0),
-(36, 83, 15, 6, NULL, NULL, 0),
-(37, 84, 4, 10, 1, NULL, 0),
-(38, 84, 20, 8, NULL, NULL, 0),
-(39, 85, 1, 1, NULL, NULL, 0),
-(40, 85, 15, 6, NULL, NULL, 0);
+(28, 79, 25, 8, NULL, NULL, 0),
+(29, 80, 7, 10, 1, NULL, 0),
+(30, 80, 20, 6, NULL, NULL, 0),
+(31, 81, 9, 1, NULL, NULL, 0),
+(32, 81, 24, 8, NULL, NULL, 0),
+(33, 82, 7, 10, 1, NULL, 0),
+(34, 82, 16, 6, NULL, NULL, 0),
+(35, 83, 8, 1, NULL, NULL, 0),
+(36, 83, 22, 8, NULL, NULL, 0),
+(37, 84, 8, 10, 1, NULL, 0),
+(38, 84, 20, 6, NULL, NULL, 0),
+(39, 85, 11, 1, NULL, NULL, 0),
+(40, 85, 22, 8, NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -170,6 +170,46 @@ INSERT INTO `extensiones` (`id_extensiones`, `extensiones`, `nombre`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `Hermano`
+--
+
+CREATE TABLE `Hermano` (
+  `id_hermano` int NOT NULL,
+  `nombre` varchar(100) NOT NULL,
+  `apellido` varchar(100) NOT NULL,
+  `direccion` varchar(255) DEFAULT NULL,
+  `fecha_nacimiento` date DEFAULT NULL,
+  `observaciones` text,
+  `ff_alta` date NOT NULL,
+  `ff_baja` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `Hermano`
+--
+
+INSERT INTO `Hermano` (`id_hermano`, `nombre`, `apellido`, `direccion`, `fecha_nacimiento`, `observaciones`, `ff_alta`, `ff_baja`) VALUES
+(1, 'Dario', 'Colombo', 'Dupuy 11141', '1976-01-11', '', '2025-01-03', NULL),
+(2, 'Andrés', 'Cano', 'desconocido', '1992-01-23', '', '2025-01-03', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Hermano_Servicio`
+--
+
+CREATE TABLE `Hermano_Servicio` (
+  `id_hermano_servicio` int NOT NULL,
+  `id_hermano` int NOT NULL,
+  `id_servicio` int NOT NULL,
+  `observaciones` text,
+  `ff_alta` date NOT NULL,
+  `ff_baja` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `lineas_canciones`
 --
 
@@ -252,6 +292,104 @@ INSERT INTO `lineas_canciones` (`id_lineas_canciones`, `linea_numero`, `texto`, 
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `Ministerio`
+--
+
+CREATE TABLE `Ministerio` (
+  `id_ministerio` int NOT NULL,
+  `descripcion` varchar(100) NOT NULL,
+  `observaciones` text,
+  `ff_alta` date NOT NULL,
+  `ff_baja` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `Ministerio`
+--
+
+INSERT INTO `Ministerio` (`id_ministerio`, `descripcion`, `observaciones`, `ff_alta`, `ff_baja`) VALUES
+(1, 'Alabanza & Adoración', 'Ministerio de música', '2020-01-01', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Responsabilidad`
+--
+
+CREATE TABLE `Responsabilidad` (
+  `id_responsabilidad` int NOT NULL,
+  `descripcion` varchar(100) NOT NULL,
+  `observaciones` text,
+  `ff_alta` date NOT NULL,
+  `ff_baja` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `Responsabilidad`
+--
+
+INSERT INTO `Responsabilidad` (`id_responsabilidad`, `descripcion`, `observaciones`, `ff_alta`, `ff_baja`) VALUES
+(1, 'Director Musical', '', '2025-01-03', NULL),
+(2, 'Músico', '', '2025-01-03', NULL),
+(3, 'Director vocal', '', '2025-01-03', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Responsabilidad_Hermano_Ministerio`
+--
+
+CREATE TABLE `Responsabilidad_Hermano_Ministerio` (
+  `id_responsabilidad_hermano_ministerio` int NOT NULL,
+  `id_ministerio` int NOT NULL,
+  `id_hermano` int NOT NULL,
+  `id_responsabilidad` int NOT NULL,
+  `observaciones` text,
+  `ff_alta` date NOT NULL,
+  `ff_baja` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `Responsabilidad_Hermano_Ministerio`
+--
+
+INSERT INTO `Responsabilidad_Hermano_Ministerio` (`id_responsabilidad_hermano_ministerio`, `id_ministerio`, `id_hermano`, `id_responsabilidad`, `observaciones`, `ff_alta`, `ff_baja`) VALUES
+(3, 1, 1, 1, '', '2025-01-03', NULL),
+(4, 1, 2, 1, '', '2025-01-03', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Servicio`
+--
+
+CREATE TABLE `Servicio` (
+  `id_servicio` int NOT NULL,
+  `id_tipo_servicio` int NOT NULL,
+  `ff_programada` datetime NOT NULL,
+  `observaciones` text,
+  `ff_alta` date NOT NULL,
+  `ff_baja` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Servicio_Cancion`
+--
+
+CREATE TABLE `Servicio_Cancion` (
+  `id_servicio_cancion` int NOT NULL,
+  `id_servicio` int NOT NULL,
+  `id_canciones` int NOT NULL,
+  `observaciones` text,
+  `ff_alta` date NOT NULL,
+  `ff_baja` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tipos_linea`
 --
 
@@ -268,6 +406,29 @@ INSERT INTO `tipos_linea` (`id`, `descripcion`) VALUES
 (1, 'ESTROFA'),
 (2, 'CORO'),
 (3, 'PUENTE');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Tipo_Servicio`
+--
+
+CREATE TABLE `Tipo_Servicio` (
+  `id_tipo_servicio` int NOT NULL,
+  `descripcion` varchar(100) NOT NULL,
+  `observaciones` text,
+  `ff_alta` date NOT NULL,
+  `ff_baja` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `Tipo_Servicio`
+--
+
+INSERT INTO `Tipo_Servicio` (`id_tipo_servicio`, `descripcion`, `observaciones`, `ff_alta`, `ff_baja`) VALUES
+(1, 'Santa Cena', '', '2025-01-03', NULL),
+(2, 'Reunión de Oración', '', '2025-01-03', NULL),
+(3, 'Reunión de jóvenes', '', '2025-01-03', NULL);
 
 -- --------------------------------------------------------
 
@@ -367,6 +528,20 @@ ALTER TABLE `extensiones`
   ADD PRIMARY KEY (`id_extensiones`);
 
 --
+-- Indexes for table `Hermano`
+--
+ALTER TABLE `Hermano`
+  ADD PRIMARY KEY (`id_hermano`);
+
+--
+-- Indexes for table `Hermano_Servicio`
+--
+ALTER TABLE `Hermano_Servicio`
+  ADD PRIMARY KEY (`id_hermano_servicio`),
+  ADD KEY `id_hermano` (`id_hermano`),
+  ADD KEY `id_servicio` (`id_servicio`);
+
+--
 -- Indexes for table `lineas_canciones`
 --
 ALTER TABLE `lineas_canciones`
@@ -374,10 +549,52 @@ ALTER TABLE `lineas_canciones`
   ADD KEY `id_estructura_canciones` (`id_estructura_canciones`);
 
 --
+-- Indexes for table `Ministerio`
+--
+ALTER TABLE `Ministerio`
+  ADD PRIMARY KEY (`id_ministerio`);
+
+--
+-- Indexes for table `Responsabilidad`
+--
+ALTER TABLE `Responsabilidad`
+  ADD PRIMARY KEY (`id_responsabilidad`);
+
+--
+-- Indexes for table `Responsabilidad_Hermano_Ministerio`
+--
+ALTER TABLE `Responsabilidad_Hermano_Ministerio`
+  ADD PRIMARY KEY (`id_responsabilidad_hermano_ministerio`),
+  ADD KEY `id_ministerio` (`id_ministerio`),
+  ADD KEY `id_hermano` (`id_hermano`),
+  ADD KEY `id_responsabilidad` (`id_responsabilidad`);
+
+--
+-- Indexes for table `Servicio`
+--
+ALTER TABLE `Servicio`
+  ADD PRIMARY KEY (`id_servicio`),
+  ADD KEY `id_tipo_servicio` (`id_tipo_servicio`);
+
+--
+-- Indexes for table `Servicio_Cancion`
+--
+ALTER TABLE `Servicio_Cancion`
+  ADD PRIMARY KEY (`id_servicio_cancion`),
+  ADD KEY `id_servicio` (`id_servicio`),
+  ADD KEY `id_canciones` (`id_canciones`);
+
+--
 -- Indexes for table `tipos_linea`
 --
 ALTER TABLE `tipos_linea`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `Tipo_Servicio`
+--
+ALTER TABLE `Tipo_Servicio`
+  ADD PRIMARY KEY (`id_tipo_servicio`);
 
 --
 -- Indexes for table `tonalidades`
@@ -420,16 +637,64 @@ ALTER TABLE `extensiones`
   MODIFY `id_extensiones` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
+-- AUTO_INCREMENT for table `Hermano`
+--
+ALTER TABLE `Hermano`
+  MODIFY `id_hermano` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `Hermano_Servicio`
+--
+ALTER TABLE `Hermano_Servicio`
+  MODIFY `id_hermano_servicio` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `lineas_canciones`
 --
 ALTER TABLE `lineas_canciones`
   MODIFY `id_lineas_canciones` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86;
 
 --
+-- AUTO_INCREMENT for table `Ministerio`
+--
+ALTER TABLE `Ministerio`
+  MODIFY `id_ministerio` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `Responsabilidad`
+--
+ALTER TABLE `Responsabilidad`
+  MODIFY `id_responsabilidad` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `Responsabilidad_Hermano_Ministerio`
+--
+ALTER TABLE `Responsabilidad_Hermano_Ministerio`
+  MODIFY `id_responsabilidad_hermano_ministerio` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `Servicio`
+--
+ALTER TABLE `Servicio`
+  MODIFY `id_servicio` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `Servicio_Cancion`
+--
+ALTER TABLE `Servicio_Cancion`
+  MODIFY `id_servicio_cancion` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `tipos_linea`
 --
 ALTER TABLE `tipos_linea`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `Tipo_Servicio`
+--
+ALTER TABLE `Tipo_Servicio`
+  MODIFY `id_tipo_servicio` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `triadas`
@@ -457,10 +722,38 @@ ALTER TABLE `estructura_canciones`
   ADD CONSTRAINT `estructura_canciones_ibfk_2` FOREIGN KEY (`id_canciones`) REFERENCES `canciones` (`id_canciones`);
 
 --
+-- Constraints for table `Hermano_Servicio`
+--
+ALTER TABLE `Hermano_Servicio`
+  ADD CONSTRAINT `Hermano_Servicio_ibfk_1` FOREIGN KEY (`id_hermano`) REFERENCES `Hermano` (`id_hermano`),
+  ADD CONSTRAINT `Hermano_Servicio_ibfk_2` FOREIGN KEY (`id_servicio`) REFERENCES `Servicio` (`id_servicio`);
+
+--
 -- Constraints for table `lineas_canciones`
 --
 ALTER TABLE `lineas_canciones`
   ADD CONSTRAINT `lineas_canciones_ibfk_2` FOREIGN KEY (`id_estructura_canciones`) REFERENCES `estructura_canciones` (`id_estructura_canciones`);
+
+--
+-- Constraints for table `Responsabilidad_Hermano_Ministerio`
+--
+ALTER TABLE `Responsabilidad_Hermano_Ministerio`
+  ADD CONSTRAINT `Responsabilidad_Hermano_Ministerio_ibfk_1` FOREIGN KEY (`id_ministerio`) REFERENCES `Ministerio` (`id_ministerio`),
+  ADD CONSTRAINT `Responsabilidad_Hermano_Ministerio_ibfk_2` FOREIGN KEY (`id_hermano`) REFERENCES `Hermano` (`id_hermano`),
+  ADD CONSTRAINT `Responsabilidad_Hermano_Ministerio_ibfk_3` FOREIGN KEY (`id_responsabilidad`) REFERENCES `Responsabilidad` (`id_responsabilidad`);
+
+--
+-- Constraints for table `Servicio`
+--
+ALTER TABLE `Servicio`
+  ADD CONSTRAINT `Servicio_ibfk_1` FOREIGN KEY (`id_tipo_servicio`) REFERENCES `Tipo_Servicio` (`id_tipo_servicio`);
+
+--
+-- Constraints for table `Servicio_Cancion`
+--
+ALTER TABLE `Servicio_Cancion`
+  ADD CONSTRAINT `Servicio_Cancion_ibfk_1` FOREIGN KEY (`id_servicio`) REFERENCES `Servicio` (`id_servicio`),
+  ADD CONSTRAINT `Servicio_Cancion_ibfk_2` FOREIGN KEY (`id_canciones`) REFERENCES `canciones` (`id_canciones`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
