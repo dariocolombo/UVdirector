@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -70,6 +71,13 @@ func main() {
 	http.HandleFunc("/consulta_parrafo_cancion", consultaParrafoCancionHandler)
 	http.HandleFunc("/consulta_letra_cifrado_cancion", consultaLetraCifradoCancionHandler)
 	http.HandleFunc("/consulta_lineas_con_acordes", consultaLineasConAcordesHandler)
+	http.HandleFunc("/consulta_tipo_servicio", consultaTipoServicioHandler)
+	http.HandleFunc("/consulta_ministerios", consultaMinisteriosHandler)
+	http.HandleFunc("/consulta_responsabilidades", consultaResponsabilidadesHandler)
+	http.HandleFunc("/consulta_hermanos", consultaHermanosHandler)
+	http.HandleFunc("/consulta_servicios", consultaServiciosHandler)
+
+
 
 
 
@@ -156,6 +164,80 @@ func consultaLineasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func consultaTipoServicioHandler(w http.ResponseWriter, r *http.Request) {
+	tipoServicio, err := consultaTipoServicio()
+	if err != nil {
+		http.Error(w, "Error al obtener los tipos de servicio", http.StatusInternalServerError)
+		log.Printf("Error: %v\n", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(tipoServicio); err != nil {
+		http.Error(w, "Error al codificar la respuesta", http.StatusInternalServerError)
+		log.Printf("Error al codificar JSON: %v\n", err)
+	}
+}
+
+func consultaMinisteriosHandler(w http.ResponseWriter, r *http.Request) {
+	ministerios, err := consultaMinisterios()
+	if err != nil {
+		http.Error(w, "Error al obtener los ministerios", http.StatusInternalServerError)
+		log.Printf("Error: %v\n", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(ministerios); err != nil {
+		http.Error(w, "Error al codificar la respuesta", http.StatusInternalServerError)
+		log.Printf("Error al codificar JSON: %v\n", err)
+	}
+}
+
+func consultaResponsabilidadesHandler(w http.ResponseWriter, r *http.Request) {
+	responsabilidades, err := consultaResponsabilidades()
+	if err != nil {
+		http.Error(w, "Error al obtener las responsabilidades", http.StatusInternalServerError)
+		log.Printf("Error: %v\n", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(responsabilidades); err != nil {
+		http.Error(w, "Error al codificar la respuesta", http.StatusInternalServerError)
+		log.Printf("Error al codificar JSON: %v\n", err)
+	}
+}
+
+func consultaHermanosHandler(w http.ResponseWriter, r *http.Request) {
+	hermanos, err := consultaHermanos()
+	if err != nil {
+		http.Error(w, "Error al obtener los hermanos", http.StatusInternalServerError)
+		log.Printf("Error: %v\n", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(hermanos); err != nil {
+		http.Error(w, "Error al codificar la respuesta", http.StatusInternalServerError)
+		log.Printf("Error al codificar JSON: %v\n", err)
+	}
+}
+
+func consultaServiciosHandler(w http.ResponseWriter, r *http.Request) {
+	servicios, err := consultaServicios()
+	if err != nil {
+		http.Error(w, "Error al obtener los servicios", http.StatusInternalServerError)
+		log.Printf("Error: %v\n", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(servicios); err != nil {
+		http.Error(w, "Error al codificar la respuesta", http.StatusInternalServerError)
+		log.Printf("Error al codificar JSON: %v\n", err)
+	}
+}
 
 
 
@@ -358,3 +440,155 @@ func consultaLineasConAcordes(id string, tono string) ([]LineaConAcordes, error)
 	}
 	return lineasFinal, nil
 }
+
+
+func consultaTipoServicio() ([]map[string]interface{}, error) {
+	rows, err := db.Query("SELECT id_tipo_servicio, descripcion FROM Tipo_Servicio WHERE ff_baja IS NULL")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tipoServicio []map[string]interface{}
+	for rows.Next() {
+		var id int
+		var descripcion string
+		if err := rows.Scan(&id, &descripcion); err != nil {
+			return nil, err
+		}
+		tipoServicio = append(tipoServicio, map[string]interface{}{
+			"id_tipo_servicio": id,
+			"descripcion":      descripcion,
+		})
+	}
+	return tipoServicio, nil
+}
+
+func consultaMinisterios() ([]map[string]interface{}, error) {
+	rows, err := db.Query("SELECT id_ministerio, descripcion FROM Ministerio WHERE ff_baja IS NULL")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ministerios []map[string]interface{}
+	for rows.Next() {
+		var id int
+		var descripcion string
+		if err := rows.Scan(&id, &descripcion); err != nil {
+			return nil, err
+		}
+		ministerios = append(ministerios, map[string]interface{}{
+			"id_ministerio": id,
+			"descripcion":   descripcion,
+		})
+	}
+	return ministerios, nil
+}
+
+func consultaResponsabilidades() ([]map[string]interface{}, error) {
+	rows, err := db.Query("SELECT id_responsabilidad, descripcion FROM Responsabilidad WHERE ff_baja IS NULL")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var responsabilidades []map[string]interface{}
+	for rows.Next() {
+		var id int
+		var descripcion string
+		if err := rows.Scan(&id, &descripcion); err != nil {
+			return nil, err
+		}
+		responsabilidades = append(responsabilidades, map[string]interface{}{
+			"id_responsabilidad": id,
+			"descripcion":        descripcion,
+		})
+	}
+	return responsabilidades, nil
+}
+
+func consultaHermanos() ([]map[string]interface{}, error) {
+	rows, err := db.Query("SELECT id_hermano, nombre, apellido, direccion, DATE_FORMAT(fecha_nacimiento, '%d/%m/%Y') AS fecha_nacimiento FROM Hermano WHERE ff_baja IS NULL")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var hermanos []map[string]interface{}
+	for rows.Next() {
+		var id int
+		var nombre, apellido, direccion, fechaNacimiento string
+		if err := rows.Scan(&id, &nombre, &apellido, &direccion, &fechaNacimiento); err != nil {
+			return nil, err
+		}
+		hermanos = append(hermanos, map[string]interface{}{
+			"id_hermano":       id,
+			"nombre":           nombre,
+			"apellido":         apellido,
+			"direccion":        direccion,
+			"fecha_nacimiento": fechaNacimiento,
+		})
+	}
+	return hermanos, nil
+}
+
+func consultaServicios() ([]map[string]interface{}, error) {
+	query := `
+		SELECT 
+			s.id_servicio,
+			ts.descripcion AS servicio_descripcion,
+			GROUP_CONCAT(DISTINCT CONCAT(h.nombre, ' ', h.apellido) ORDER BY h.nombre, h.apellido SEPARATOR ', ') AS nombre_hermanos,
+			GROUP_CONCAT(DISTINCT cn.nombre ORDER BY cn.nombre SEPARATOR ', ') AS nombre_canciones,
+			DATE_FORMAT(s.ff_programada, '%d/%m/%Y') AS ff_programada
+		FROM 
+			Servicio s
+		INNER JOIN Tipo_Servicio ts ON s.id_tipo_servicio = ts.id_tipo_servicio
+		LEFT JOIN Hermano_Servicio hs ON s.id_servicio = hs.id_servicio
+		LEFT JOIN Hermano h ON hs.id_hermano = h.id_hermano
+		LEFT JOIN Servicio_Cancion sc ON s.id_servicio = sc.id_servicio
+		LEFT JOIN canciones cn ON sc.id_canciones = cn.id_canciones
+		WHERE 
+			s.ff_baja IS NULL
+		GROUP BY 
+			s.id_servicio, ts.descripcion, s.ff_programada
+		ORDER BY 
+			s.ff_programada
+	`
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var servicios []map[string]interface{}
+	for rows.Next() {
+		var idServicio int
+		var servicioDescripcion, nombreHermanos, nombreCanciones, ffProgramada string
+
+		if err := rows.Scan(&idServicio, &servicioDescripcion, &nombreHermanos, &nombreCanciones, &ffProgramada); err != nil {
+			return nil, err
+		}
+
+		hermanos := []string{}
+		if nombreHermanos != "" {
+			hermanos = strings.Split(nombreHermanos, ", ")
+		}
+
+		canciones := []string{}
+		if nombreCanciones != "" {
+			canciones = strings.Split(nombreCanciones, ", ")
+		}
+
+		servicios = append(servicios, map[string]interface{}{
+			"id_servicio":          idServicio,
+			"servicio_descripcion": servicioDescripcion,
+			"nombre_hermanos":      hermanos,
+			"nombre_canciones":     canciones,
+			"ff_programada":        ffProgramada,
+		})
+	}
+
+	return servicios, nil
+}
+
