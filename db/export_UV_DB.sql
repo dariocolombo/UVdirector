@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db:3306
--- Generation Time: Jan 03, 2025 at 06:53 PM
+-- Generation Time: Jan 10, 2025 at 09:15 PM
 -- Server version: 8.4.0
 -- PHP Version: 8.2.8
 
@@ -190,7 +190,9 @@ CREATE TABLE `Hermano` (
 
 INSERT INTO `Hermano` (`id_hermano`, `nombre`, `apellido`, `direccion`, `fecha_nacimiento`, `observaciones`, `ff_alta`, `ff_baja`) VALUES
 (1, 'Dario', 'Colombo', 'Dupuy 11141', '1976-01-11', '', '2025-01-03', NULL),
-(2, 'Andrés', 'Cano', 'desconocido', '1992-01-23', '', '2025-01-03', NULL);
+(2, 'Andrés', 'Cano', 'desconocido', '1992-01-23', '', '2025-01-03', NULL),
+(3, 'Ignacio', 'Salvatierra', 'desconocida', '2003-03-25', NULL, '2025-01-08', NULL),
+(4, 'Cipriano Ramiro', 'BONGARRÁ', 'desconocida', '2008-09-22', NULL, '2025-01-08', NULL);
 
 -- --------------------------------------------------------
 
@@ -206,6 +208,21 @@ CREATE TABLE `Hermano_Servicio` (
   `ff_alta` date NOT NULL,
   `ff_baja` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `Hermano_Servicio`
+--
+
+INSERT INTO `Hermano_Servicio` (`id_hermano_servicio`, `id_hermano`, `id_servicio`, `observaciones`, `ff_alta`, `ff_baja`) VALUES
+(1, 4, 2, NULL, '2025-01-08', NULL),
+(2, 1, 2, NULL, '2025-01-08', NULL),
+(3, 2, 1, NULL, '2025-01-08', NULL),
+(4, 3, 1, NULL, '2025-01-08', NULL),
+(5, 2, 3, NULL, '2025-01-10', NULL),
+(6, 3, 3, NULL, '2025-01-10', NULL),
+(7, 4, 3, NULL, '2025-01-10', NULL),
+(10, 1, 4, NULL, '2025-01-10', NULL),
+(11, 4, 4, NULL, '2025-01-10', NULL);
 
 -- --------------------------------------------------------
 
@@ -372,6 +389,16 @@ CREATE TABLE `Servicio` (
   `ff_baja` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+--
+-- Dumping data for table `Servicio`
+--
+
+INSERT INTO `Servicio` (`id_servicio`, `id_tipo_servicio`, `ff_programada`, `observaciones`, `ff_alta`, `ff_baja`) VALUES
+(1, 3, '2025-01-25 20:30:00', 'Reunión de jovenes de prueba', '2025-01-08', NULL),
+(2, 1, '2025-01-19 09:30:00', 'reunion de cena de prueba', '2025-01-08', NULL),
+(3, 3, '2025-01-23 00:00:00', NULL, '2025-01-10', '2025-01-10'),
+(4, 2, '2025-02-03 00:00:00', NULL, '2025-01-10', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -386,6 +413,21 @@ CREATE TABLE `Servicio_Cancion` (
   `ff_alta` date NOT NULL,
   `ff_baja` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `Servicio_Cancion`
+--
+
+INSERT INTO `Servicio_Cancion` (`id_servicio_cancion`, `id_servicio`, `id_canciones`, `observaciones`, `ff_alta`, `ff_baja`) VALUES
+(1, 2, 4, NULL, '2025-01-08', NULL),
+(2, 2, 3, NULL, '2025-01-08', NULL),
+(3, 1, 1, NULL, '2025-01-08', NULL),
+(4, 1, 8, NULL, '2025-01-08', NULL),
+(5, 3, 1, NULL, '2025-01-10', NULL),
+(6, 3, 3, NULL, '2025-01-10', NULL),
+(7, 3, 4, NULL, '2025-01-10', NULL),
+(10, 4, 1, NULL, '2025-01-10', NULL),
+(11, 4, 4, NULL, '2025-01-10', NULL);
 
 -- --------------------------------------------------------
 
@@ -640,13 +682,13 @@ ALTER TABLE `extensiones`
 -- AUTO_INCREMENT for table `Hermano`
 --
 ALTER TABLE `Hermano`
-  MODIFY `id_hermano` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_hermano` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `Hermano_Servicio`
 --
 ALTER TABLE `Hermano_Servicio`
-  MODIFY `id_hermano_servicio` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_hermano_servicio` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `lineas_canciones`
@@ -676,13 +718,13 @@ ALTER TABLE `Responsabilidad_Hermano_Ministerio`
 -- AUTO_INCREMENT for table `Servicio`
 --
 ALTER TABLE `Servicio`
-  MODIFY `id_servicio` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_servicio` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `Servicio_Cancion`
 --
 ALTER TABLE `Servicio_Cancion`
-  MODIFY `id_servicio_cancion` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_servicio_cancion` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `tipos_linea`
