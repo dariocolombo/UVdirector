@@ -8,9 +8,18 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
+
+
+type NuevoServicio struct {
+	IdTipoServicio int      `json:"id_tipo_servicio"`
+	IdHermanos     []int    `json:"id_hermanos"`
+	IdCanciones    []int    `json:"id_canciones"`
+	FfProgramada   string   `json:"ff_programada"`
+}
 
 type Cancion struct {
 	ID     int    `json:"id_canciones"`
@@ -76,6 +85,9 @@ func main() {
 	http.HandleFunc("/consulta_responsabilidades", consultaResponsabilidadesHandler)
 	http.HandleFunc("/consulta_hermanos", consultaHermanosHandler)
 	http.HandleFunc("/consulta_servicios", consultaServiciosHandler)
+	http.HandleFunc("/altaServicio", altaServicioHandler)
+	http.HandleFunc("/modificacionServicio", modificarServicioHandler)
+	http.HandleFunc("/bajaServicio", bajaServicioHandler)
 
 
 
@@ -239,6 +251,208 @@ func consultaServiciosHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func altaServicioHandler(w http.ResponseWriter, r *http.Request) {
+	// Decodificar el JSON recibido
+	var nuevoServicio NuevoServicio
+	if err := json.NewDecoder(r.Body).Decode(&nuevoServicio); err != nil {
+		http.Error(w, "Error al procesar el JSON: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Validar fecha
+	ffProgramada, err := time.Parse("02/01/2006", nuevoServicio.FfProgramada)
+	if err != nil {
+		http.Error(w, "Formato de fecha incorrecto. Use DD/MM/YYYY.", http.StatusBadRequest)
+		return
+	}
+
+	// Iniciar transacción
+	tx, err := db.Begin()
+	if err != nil {
+		http.Error(w, "Error al iniciar la transacción: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer tx.Rollback()
+
+	// Insertar en tabla Servicio
+	var idServicio int
+	queryServicio := `
+		INSERT INTO Servicio (id_tipo_servicio, ff_programada, ff_alta)
+		VALUES (?, ?, ?)
+	`
+	result, err := tx.Exec(queryServicio, nuevoServicio.IdTipoServicio, ffProgramada, time.Now())
+	if err != nil {
+		http.Error(w, "Error al insertar en Servicio: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	idServicio64, err := result.LastInsertId()
+	if err != nil {
+		http.Error(w, "Error al obtener el ID del nuevo servicio: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	idServicio = int(idServicio64)
+
+	// Insertar en tabla Hermano_Servicio
+	queryHermanoServicio := `
+		INSERT INTO Hermano_Servicio (id_hermano, id_servicio, ff_alta)
+		VALUES (?, ?, ?)
+	`
+	for _, idHermano := range nuevoServicio.IdHermanos {
+		if _, err := tx.Exec(queryHermanoServicio, idHermano, idServicio, time.Now()); err != nil {
+			http.Error(w, "Error al insertar en Hermano_Servicio: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Insertar en tabla Servicio_Cancion
+	queryServicioCancion := `
+		INSERT INTO Servicio_Cancion (id_canciones, id_servicio, ff_alta)
+		VALUES (?, ?, ?)
+	`
+	for _, idCancion := range nuevoServicio.IdCanciones {
+		if _, err := tx.Exec(queryServicioCancion, idCancion, idServicio, time.Now()); err != nil {
+			http.Error(w, "Error al insertar en Servicio_Cancion: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Confirmar transacción
+	if err := tx.Commit(); err != nil {
+		http.Error(w, "Error al confirmar la transacción: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Responder con éxito
+	w.WriteHeader(http.StatusCreated)
+	fmt.Fprintf(w, "Servicio creado con ID: %d", idServicio)
+}
+
+func modificarServicioHandler(w http.ResponseWriter, r *http.Request) {
+	var servicioModificado struct {
+		IdServicio      int      `json:"id_servicio"`
+		IdTipoServicio  int      `json:"id_tipo_servicio"`
+		IdHermanos      []int    `json:"id_hermanos"`
+		IdCanciones     []int    `json:"id_canciones"`
+		FfProgramada    string   `json:"ff_programada"`
+	}
+
+	// Decodificar el JSON recibido
+	err := json.NewDecoder(r.Body).Decode(&servicioModificado)
+	if err != nil {
+		http.Error(w, "Error al procesar el JSON de entrada", http.StatusBadRequest)
+		return
+	}
+
+	// Validar y parsear la fecha
+	ffProgramada, err := time.Parse("02/01/2006", servicioModificado.FfProgramada)
+	if err != nil {
+		http.Error(w, "Formato de fecha incorrecto. Use DD/MM/YYYY", http.StatusBadRequest)
+		return
+	}
+
+	// Actualizar la tabla `Servicio`
+	queryServicio := `
+		UPDATE Servicio 
+		SET id_tipo_servicio = ?, ff_programada = ?
+		WHERE id_servicio = ? AND ff_baja IS NULL
+	`
+	_, err = db.Exec(queryServicio, servicioModificado.IdTipoServicio, ffProgramada, servicioModificado.IdServicio)
+	if err != nil {
+		http.Error(w, "Error al actualizar el servicio", http.StatusInternalServerError)
+		return
+	}
+
+	// Eliminar las relaciones actuales del servicio
+	_, err = db.Exec("DELETE FROM Hermano_Servicio WHERE id_servicio = ?", servicioModificado.IdServicio)
+	if err != nil {
+		http.Error(w, "Error al eliminar hermanos asociados", http.StatusInternalServerError)
+		return
+	}
+	_, err = db.Exec("DELETE FROM Servicio_Cancion WHERE id_servicio = ?", servicioModificado.IdServicio)
+	if err != nil {
+		http.Error(w, "Error al eliminar canciones asociadas", http.StatusInternalServerError)
+		return
+	}
+
+	// Insertar nuevas relaciones en `Hermano_Servicio`
+	queryHermanoServicio := `
+		INSERT INTO Hermano_Servicio (id_hermano, id_servicio, ff_alta) 
+		VALUES (?, ?, ?)
+	`
+	for _, idHermano := range servicioModificado.IdHermanos {
+		_, err = db.Exec(queryHermanoServicio, idHermano, servicioModificado.IdServicio, time.Now())
+		if err != nil {
+			http.Error(w, "Error al asociar hermanos al servicio", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Insertar nuevas relaciones en `Servicio_Cancion`
+	queryServicioCancion := `
+		INSERT INTO Servicio_Cancion (id_canciones, id_servicio, ff_alta) 
+		VALUES (?, ?, ?)
+	`
+	for _, idCancion := range servicioModificado.IdCanciones {
+		_, err = db.Exec(queryServicioCancion, idCancion, servicioModificado.IdServicio, time.Now())
+		if err != nil {
+			http.Error(w, "Error al asociar canciones al servicio", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Servicio modificado exitosamente"))
+}
+
+func bajaServicioHandler(w http.ResponseWriter, r *http.Request) {
+	// Estructura para recibir el JSON con el ID del servicio
+	var requestBody struct {
+		IdServicio int `json:"id_servicio"`
+	}
+
+	// Decodificar el JSON recibido
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil {
+		http.Error(w, "Error al procesar el JSON de entrada", http.StatusBadRequest)
+		return
+	}
+
+	// Validar que se haya recibido un ID de servicio
+	if requestBody.IdServicio == 0 {
+		http.Error(w, "El campo id_servicio es obligatorio", http.StatusBadRequest)
+		return
+	}
+
+	// Obtener la fecha actual para registrar la baja lógica
+	ffBaja := time.Now()
+
+	// Realizar la baja lógica del servicio
+	query := `
+		UPDATE Servicio 
+		SET ff_baja = ?
+		WHERE id_servicio = ? AND ff_baja IS NULL
+	`
+	result, err := db.Exec(query, ffBaja, requestBody.IdServicio)
+	if err != nil {
+		http.Error(w, "Error al realizar la baja del servicio", http.StatusInternalServerError)
+		return
+	}
+
+	// Verificar si se actualizó algún registro
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		http.Error(w, "Error al verificar la operación de baja", http.StatusInternalServerError)
+		return
+	}
+	if rowsAffected == 0 {
+		http.Error(w, "No se encontró el servicio o ya estaba dado de baja", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Servicio dado de baja exitosamente"))
+}
 
 
 
