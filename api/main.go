@@ -769,6 +769,7 @@ func consultaServicios() ([]map[string]interface{}, error) {
 		ORDER BY 
 			s.ff_programada
 	`
+
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
@@ -778,31 +779,38 @@ func consultaServicios() ([]map[string]interface{}, error) {
 	var servicios []map[string]interface{}
 	for rows.Next() {
 		var idServicio int
-		var servicioDescripcion, nombreHermanos, nombreCanciones, ffProgramada string
+		var servicioDescripcion, nombreHermanos, nombreCanciones, ffProgramada *string
 
 		if err := rows.Scan(&idServicio, &servicioDescripcion, &nombreHermanos, &nombreCanciones, &ffProgramada); err != nil {
 			return nil, err
 		}
 
 		hermanos := []string{}
-		if nombreHermanos != "" {
-			hermanos = strings.Split(nombreHermanos, ", ")
+		if nombreHermanos != nil && *nombreHermanos != "" {
+			hermanos = strings.Split(*nombreHermanos, ", ")
 		}
 
 		canciones := []string{}
-		if nombreCanciones != "" {
-			canciones = strings.Split(nombreCanciones, ", ")
+		if nombreCanciones != nil && *nombreCanciones != "" {
+			canciones = strings.Split(*nombreCanciones, ", ")
 		}
 
 		servicios = append(servicios, map[string]interface{}{
 			"id_servicio":          idServicio,
-			"servicio_descripcion": servicioDescripcion,
+			"servicio_descripcion": ifNotNil(servicioDescripcion, ""),
 			"nombre_hermanos":      hermanos,
 			"nombre_canciones":     canciones,
-			"ff_programada":        ffProgramada,
+			"ff_programada":        ifNotNil(ffProgramada, ""),
 		})
 	}
 
 	return servicios, nil
 }
 
+// Helper function to handle nil pointers.
+func ifNotNil(ptr *string, defaultValue string) string {
+	if ptr != nil {
+		return *ptr
+	}
+	return defaultValue
+}
