@@ -252,17 +252,42 @@ func consultaServiciosHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func altaServicioHandler(w http.ResponseWriter, r *http.Request) {
-	// Decodificar el JSON recibido
+	// Estructura para el JSON recibido
+	type NuevoServicio struct {
+		IdTipoServicio   int      `json:"id_tipo_servicio"`
+		FfProgramada     string   `json:"ff_programada"`      // Fecha y hora en formato "30/01/2025 16:30:30"
+		FfPrueba         string   `json:"ff_prueba"`          // Fecha y hora en formato "30/01/2025 14:00:00"
+		DuracionServicio int      `json:"duracion_servicio"`  // Duración en minutos
+		IdLugarServicio  int      `json:"id_lugar_servicio"`  // ID del lugar del servicio
+		IdHermanos       []int    `json:"id_hermanos"`        // Lista de IDs de hermanos
+		Canciones        []struct {
+			IdCancion int `json:"id_cancion"` // ID de la canción
+			Tonalidad int `json:"tonalidad"` // Tonalidad (1-12)
+		} `json:"canciones"`
+	}
+
 	var nuevoServicio NuevoServicio
+
+	// Decodificar el JSON recibido
 	if err := json.NewDecoder(r.Body).Decode(&nuevoServicio); err != nil {
 		http.Error(w, "Error al procesar el JSON: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Validar fecha
-	ffProgramada, err := time.Parse("02/01/2006", nuevoServicio.FfProgramada)
+	// Validar fechas y duración
+	ffProgramada, err := time.Parse("02/01/2006 15:04:05", nuevoServicio.FfProgramada)
 	if err != nil {
-		http.Error(w, "Formato de fecha incorrecto. Use DD/MM/YYYY.", http.StatusBadRequest)
+		http.Error(w, "Formato incorrecto para ff_programada. Use DD/MM/YYYY HH:MM:SS.", http.StatusBadRequest)
+		return
+	}
+	ffPrueba, err := time.Parse("02/01/2006 15:04:05", nuevoServicio.FfPrueba)
+	if err != nil {
+		http.Error(w, "Formato incorrecto para ff_prueba. Use DD/MM/YYYY HH:MM:SS.", http.StatusBadRequest)
+		return
+	}
+
+	if nuevoServicio.DuracionServicio <= 0 {
+		http.Error(w, "La duración del servicio debe ser mayor a 0.", http.StatusBadRequest)
 		return
 	}
 
@@ -277,10 +302,10 @@ func altaServicioHandler(w http.ResponseWriter, r *http.Request) {
 	// Insertar en tabla Servicio
 	var idServicio int
 	queryServicio := `
-		INSERT INTO Servicio (id_tipo_servicio, ff_programada, ff_alta)
-		VALUES (?, ?, ?)
+		INSERT INTO Servicio (id_tipo_servicio, ff_programada, ff_prueba, duracion_servicio, id_lugar_servicio, ff_alta)
+		VALUES (?, ?, ?, ?, ?, ?)
 	`
-	result, err := tx.Exec(queryServicio, nuevoServicio.IdTipoServicio, ffProgramada, time.Now())
+	result, err := tx.Exec(queryServicio, nuevoServicio.IdTipoServicio, ffProgramada, ffPrueba, nuevoServicio.DuracionServicio, nuevoServicio.IdLugarServicio, time.Now())
 	if err != nil {
 		http.Error(w, "Error al insertar en Servicio: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -305,13 +330,17 @@ func altaServicioHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Insertar en tabla Servicio_Cancion
+	// Insertar en tabla Servicio_Cancion con tonalidad
 	queryServicioCancion := `
-		INSERT INTO Servicio_Cancion (id_canciones, id_servicio, ff_alta)
-		VALUES (?, ?, ?)
+		INSERT INTO Servicio_Cancion (id_canciones, id_servicio, tonalidad, ff_alta)
+		VALUES (?, ?, ?, ?)
 	`
-	for _, idCancion := range nuevoServicio.IdCanciones {
-		if _, err := tx.Exec(queryServicioCancion, idCancion, idServicio, time.Now()); err != nil {
+	for _, cancion := range nuevoServicio.Canciones {
+		if cancion.Tonalidad < 1 || cancion.Tonalidad > 12 {
+			http.Error(w, fmt.Sprintf("Tonalidad inválida para la canción con ID %d. Debe estar entre 1 y 12.", cancion.IdCancion), http.StatusBadRequest)
+			return
+		}
+		if _, err := tx.Exec(queryServicioCancion, cancion.IdCancion, idServicio, cancion.Tonalidad, time.Now()); err != nil {
 			http.Error(w, "Error al insertar en Servicio_Cancion: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
