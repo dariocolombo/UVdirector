@@ -1,441 +1,103 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+INSERT INTO `canciones` (`id_canciones`, `nombre`, `tonalidad_sugerida`, `tiempo`, `autor`) VALUES
+(NULL,'A Dios sea la gloria', 'F', 83, 'desconocido');
+SET @id_canciones = LAST_INSERT_ID();
+
+INSERT INTO `estructura_canciones` (`id_estructura_canciones`, `id_canciones`, `id_tipo_linea`, `tipo_linea_numero`, `posicion_estructura`) VALUES
+(NULL,@id_canciones, 1, 1, 1);
+SET @id_esctructura_canciones1 = LAST_INSERT_ID();
+INSERT INTO `estructura_canciones` (`id_estructura_canciones`, `id_canciones`, `id_tipo_linea`, `tipo_linea_numero`, `posicion_estructura`) VALUES
+(NULL,@id_canciones, 2, 1, 2);
+SET @id_esctructura_canciones2 = LAST_INSERT_ID();
+
+
+INSERT INTO `lineas_canciones` (`id_lineas_canciones`, `linea_numero`, `texto`, `id_estructura_canciones`) VALUES
+(NULL,1, 'A Dios sea la gloria, al mundo El dio', @id_esctructura_canciones1);
+SET @id_lineas_canciones1 = LAST_INSERT_ID();
+INSERT INTO `lineas_canciones` (`id_lineas_canciones`, `linea_numero`, `texto`, `id_estructura_canciones`) VALUES
+(NULL,2, 'Al Hijo bendito que por nos murió;', @id_esctructura_canciones1);
+SET @id_lineas_canciones2 = LAST_INSERT_ID();
+INSERT INTO `lineas_canciones` (`id_lineas_canciones`, `linea_numero`, `texto`, `id_estructura_canciones`) VALUES
+(NULL,3, 'Expió los pecados de quien en El cree,', @id_esctructura_canciones1);
+SET @id_lineas_canciones3 = LAST_INSERT_ID();
+INSERT INTO `lineas_canciones` (`id_lineas_canciones`, `linea_numero`, `texto`, `id_estructura_canciones`) VALUES
+(NULL,4, 'Abriónos la senda hacia Dios por la fe.', @id_esctructura_canciones1);
+SET @id_lineas_canciones4 = LAST_INSERT_ID();
+INSERT INTO `lineas_canciones` (`id_lineas_canciones`, `linea_numero`, `texto`, `id_estructura_canciones`) VALUES
+(NULL,5, '¡Gloria a Dios! ¡Gloria a Dios!', @id_esctructura_canciones2);
+SET @id_lineas_canciones5 = LAST_INSERT_ID();
+INSERT INTO `lineas_canciones` (`id_lineas_canciones`, `linea_numero`, `texto`, `id_estructura_canciones`) VALUES
+(NULL,6, 'Que de tal modo amó', @id_esctructura_canciones2);
+SET @id_lineas_canciones6 = LAST_INSERT_ID();
+INSERT INTO `lineas_canciones` (`id_lineas_canciones`, `linea_numero`, `texto`, `id_estructura_canciones`) VALUES
+(NULL,7, 'Al que lejos de El en pecado se halló;', @id_esctructura_canciones2);
+SET @id_lineas_canciones7 = LAST_INSERT_ID();
+INSERT INTO `lineas_canciones` (`id_lineas_canciones`, `linea_numero`, `texto`, `id_estructura_canciones`) VALUES
+(NULL,8, 'Venid por el Hijo al gran Dios Salvador,', @id_esctructura_canciones2);
+SET @id_lineas_canciones8 = LAST_INSERT_ID();
+INSERT INTO `lineas_canciones` (`id_lineas_canciones`, `linea_numero`, `texto`, `id_estructura_canciones`) VALUES
+(NULL,9, 'Y dadle la gloria por tan grande amor.', @id_esctructura_canciones2);
+SET @id_lineas_canciones9 = LAST_INSERT_ID();
+
+
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones1, 5, 1, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones1, 27, 8, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones1, 37, 1, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones2, 5, 6, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones2, 13, 1, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones2, 22, 3, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones2, 33, 8, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones3, 5, 1, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones3, 25, 8, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones3, 37, 1, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones4, 1, 1, NULL, 2, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones4, 6, 6, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones4, 14, 1, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones4, 27, 8, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones4, 38, 1, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones5, 13, 1, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones5, 29, 1, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones6, 9, 1, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones6, 19, 8, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones7, 9, 3, 1, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones7, 17, 3, 1, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones7, 26, 8, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones7, 37, 1, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones8, 4, 1, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones8, 29, 8, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones8, 38, 1, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones9, 1, 1, NULL, 2, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones9, 6, 6, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones9, 14, 1, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones9, 24, 8, NULL, NULL, 0);
+INSERT INTO `acordes_linea` (`id_acordes_linea`, `id_lineas_canciones`, `ubicacion`, `grado`, `id_triadas`, `id_extensiones`, `duracion`) VALUES
+(NULL,@id_lineas_canciones9, 36, 1, NULL, NULL, 0);

@@ -9,6 +9,8 @@ import (
 	"os"
 	"strings"
 	"time"
+//	"bytes"
+	"github.com/jung-kurt/gofpdf"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -88,6 +90,8 @@ func main() {
 	http.HandleFunc("/altaServicio", altaServicioHandler)
 	http.HandleFunc("/modificacionServicio", modificarServicioHandler)
 	http.HandleFunc("/bajaServicio", bajaServicioHandler)
+	http.HandleFunc("/generar-pdf-letra", generarPDFLetrasHandler)
+	http.HandleFunc("/generar-pdf-letra-cifrado", generarPDFLetrasConAcordesHandler)
 
 
 
@@ -842,4 +846,428 @@ func ifNotNil(ptr *string, defaultValue string) string {
 		return *ptr
 	}
 	return defaultValue
+}
+
+
+func removeAccents(input string) string {
+    replacer := strings.NewReplacer(
+        "á", "a", "é", "e", "í", "i", "ó", "o", "ú", "u",
+        "Á", "A", "É", "E", "Í", "I", "Ó", "O", "Ú", "U",
+        "ñ", "n", "Ñ", "N",
+    )
+    return replacer.Replace(input)
+}
+
+func generarPDFLetrasHandler(w http.ResponseWriter, r *http.Request) {
+    var requestBody struct {
+        ServiceID int `json:"id_servicio"`
+    }
+
+    err := json.NewDecoder(r.Body).Decode(&requestBody)
+    if err != nil {
+        http.Error(w, "Invalid JSON", http.StatusBadRequest)
+        return
+    }
+
+    if requestBody.ServiceID == 0 {
+        http.Error(w, "Service ID is required", http.StatusBadRequest)
+        return
+    }
+
+    // Consulta SQL para obtener la fecha del servicio y el tipo de servicio
+    var serviceDate, serviceType string
+    err = db.QueryRow(`
+        SELECT s.ff_programada, ts.descripcion
+        FROM Servicio s
+        INNER JOIN Tipo_Servicio ts ON s.id_tipo_servicio = ts.id_tipo_servicio
+        WHERE s.id_servicio = ?
+    `, requestBody.ServiceID).Scan(&serviceDate, &serviceType)
+    if err != nil {
+        log.Printf("Error fetching service data: %v", err)
+        http.Error(w, "Error fetching service data", http.StatusInternalServerError)
+        return
+    }
+
+    // Consulta SQL para obtener las letras organizadas por estructura
+    query := `
+        SELECT 
+            c.id_canciones AS song_id, 
+            c.nombre AS title, 
+            tl.descripcion AS structure_name,
+            lc.texto AS line_text
+        FROM Servicio_Cancion sc
+        INNER JOIN canciones c ON sc.id_canciones = c.id_canciones
+        INNER JOIN estructura_canciones ec ON c.id_canciones = ec.id_canciones
+        INNER JOIN lineas_canciones lc ON ec.id_estructura_canciones = lc.id_estructura_canciones
+        INNER JOIN tipos_linea tl ON ec.id_tipo_linea = tl.id
+        WHERE sc.id_servicio = ?
+        ORDER BY c.id_canciones, ec.posicion_estructura, lc.linea_numero;
+    `
+
+    rows, err := db.Query(query, requestBody.ServiceID)
+    if err != nil {
+        log.Printf("Error fetching data: %v", err)
+        http.Error(w, "Error fetching data", http.StatusInternalServerError)
+        return
+    }
+    defer rows.Close()
+
+    type Line struct {
+        Text string
+    }
+    type Part struct {
+        Name  string
+        Lines []Line
+    }
+    type Song struct {
+        Title string
+        Parts []Part
+    }
+
+    songs := make(map[int]Song)
+
+    for rows.Next() {
+        var songID int
+        var title, structureName, lineText string
+
+        if err := rows.Scan(&songID, &title, &structureName, &lineText); err != nil {
+            log.Printf("Error processing data: %v", err)
+            http.Error(w, "Error processing data", http.StatusInternalServerError)
+            return
+        }
+
+        title = strings.ToUpper(removeAccents(title))
+        structureName = strings.ToUpper(removeAccents(structureName))
+        lineText = strings.ToUpper(removeAccents(lineText))
+
+        if _, exists := songs[songID]; !exists {
+            songs[songID] = Song{
+                Title: title,
+                Parts: []Part{},
+            }
+        }
+
+        song := songs[songID]
+        partIndex := -1
+        for i, part := range song.Parts {
+            if part.Name == structureName {
+                partIndex = i
+                break
+            }
+        }
+
+        if partIndex == -1 {
+            song.Parts = append(song.Parts, Part{
+                Name:  structureName,
+                Lines: []Line{},
+            })
+            partIndex = len(song.Parts) - 1
+        }
+
+        song.Parts[partIndex].Lines = append(song.Parts[partIndex].Lines, Line{
+            Text: lineText,
+        })
+
+        songs[songID] = song
+    }
+
+    if err := rows.Err(); err != nil {
+        log.Printf("Error iterating rows: %v", err)
+        http.Error(w, "Error processing data", http.StatusInternalServerError)
+        return
+    }
+
+    pdf := gofpdf.New("P", "mm", "A4", "")
+    pdf.SetFont("Courier", "", 12)
+
+    for _, song := range songs {
+        pdf.AddPage()
+
+        // Agregar la fecha del servicio y el tipo de servicio en la parte superior de cada página
+        pdf.SetFont("Courier", "B", 12)
+        pdf.Cell(0, 10, fmt.Sprintf("Fecha del Servicio: %s", serviceDate))
+        pdf.Ln(5)
+        pdf.Cell(0, 10, fmt.Sprintf("Tipo de Servicio: %s", serviceType))
+        pdf.Ln(10)
+
+        pdf.SetFont("Courier", "B", 14)
+        pdf.Cell(0, 10, song.Title)
+        pdf.Ln(10)
+
+        pdf.SetFont("Courier", "", 12)
+        for _, part := range song.Parts {
+            pdf.SetFont("Courier", "B", 12)
+            pdf.Cell(0, 10, part.Name)
+            pdf.Ln(8)
+
+            pdf.SetFont("Courier", "", 12)
+            for _, line := range part.Lines {
+                pdf.Cell(0, 10, line.Text)
+                pdf.Ln(6)
+            }
+            pdf.Ln(5)
+        }
+    }
+
+    w.Header().Set("Content-Type", "application/pdf")
+    w.Header().Set("Content-Disposition", "inline; filename=lyrics.pdf")
+    if err := pdf.Output(w); err != nil {
+        log.Printf("Error generating PDF: %v", err)
+        http.Error(w, "Error generating PDF", http.StatusInternalServerError)
+    }
+}
+
+func generarPDFLetrasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
+    var requestBody struct {
+        ServiceID int `json:"id_servicio"`
+    }
+
+    err := json.NewDecoder(r.Body).Decode(&requestBody)
+    if err != nil {
+        http.Error(w, "Invalid JSON", http.StatusBadRequest)
+        return
+    }
+
+    if requestBody.ServiceID == 0 {
+        http.Error(w, "Service ID is required", http.StatusBadRequest)
+        return
+    }
+
+    // Consulta SQL para obtener la fecha del servicio y el tipo de servicio
+    var serviceDate, serviceType string
+    err = db.QueryRow(`
+        SELECT s.ff_programada, ts.descripcion
+        FROM Servicio s
+        INNER JOIN Tipo_Servicio ts ON s.id_tipo_servicio = ts.id_tipo_servicio
+        WHERE s.id_servicio = ?
+    `, requestBody.ServiceID).Scan(&serviceDate, &serviceType)
+    if err != nil {
+        log.Printf("Error fetching service data: %v", err)
+        http.Error(w, "Error fetching service data", http.StatusInternalServerError)
+        return
+    }
+
+    // Consulta SQL para obtener las letras organizadas por estructura y los acordes
+    query := `
+        SELECT 
+            c.id_canciones AS song_id, 
+            c.nombre AS title, 
+            t.codigo AS tonality_code,
+            c.tiempo AS tempo,
+            c.autor AS author,
+            tl.descripcion AS structure_name,
+            lc.texto AS line_text,
+            al.ubicacion-1 AS chord_position,
+            concat((select codigo from tonalidades where grado=al.grado+sc.tonalidad-1),ifnull((select triadas from triadas where id_triadas=al.id_triadas),''),ifnull((select extensiones from extensiones where id_extensiones=al.id_extensiones),'')) AS chord,
+            sc.tonalidad AS service_tonality
+        FROM Servicio_Cancion sc
+        INNER JOIN canciones c ON sc.id_canciones = c.id_canciones
+        INNER JOIN estructura_canciones ec ON c.id_canciones = ec.id_canciones
+        INNER JOIN lineas_canciones lc ON ec.id_estructura_canciones = lc.id_estructura_canciones
+        INNER JOIN tipos_linea tl ON ec.id_tipo_linea = tl.id
+        LEFT JOIN acordes_linea al ON lc.id_lineas_canciones = al.id_lineas_canciones
+        LEFT JOIN tonalidades t ON sc.tonalidad = t.grado
+        WHERE sc.id_servicio = ?
+        ORDER BY c.id_canciones, ec.posicion_estructura, lc.linea_numero, al.ubicacion;
+    `
+
+    rows, err := db.Query(query, requestBody.ServiceID)
+    if err != nil {
+        log.Printf("Error fetching data: %v", err)
+        http.Error(w, "Error fetching data", http.StatusInternalServerError)
+        return
+    }
+    defer rows.Close()
+
+    type Chord struct {
+        Position int
+        Chord    string
+    }
+    type Line struct {
+        Text   string
+        Chords []Chord
+    }
+    type Part struct {
+        Name  string
+        Lines []Line
+    }
+    type Song struct {
+        Title      string
+        Tonality   string
+        Tempo      int
+        Author     string
+        Parts      []Part
+    }
+
+    songs := make(map[int]Song)
+
+    for rows.Next() {
+        var songID int
+        var title, tonalityCode, author, structureName, lineText, chord string
+        var tempo sql.NullInt64
+        var chordPosition sql.NullInt64
+        var serviceTonality int
+
+        if err := rows.Scan(&songID, &title, &tonalityCode, &tempo, &author, &structureName, &lineText, &chordPosition, &chord, &serviceTonality); err != nil {
+            log.Printf("Error processing data: %v", err)
+            http.Error(w, "Error processing data", http.StatusInternalServerError)
+            return
+        }
+
+        title = strings.ToUpper(removeAccents(title))
+        tonalityCode = strings.ToUpper(removeAccents(tonalityCode))
+        author = strings.ToUpper(removeAccents(author))
+        structureName = strings.ToUpper(removeAccents(structureName))
+        lineText = strings.ToUpper(removeAccents(lineText))
+
+        if _, exists := songs[songID]; !exists {
+            songs[songID] = Song{
+                Title:      title,
+                Tonality:   tonalityCode,
+                Tempo:      int(tempo.Int64),
+                Author:     author,
+                Parts:      []Part{},
+            }
+        }
+
+        song := songs[songID]
+        partIndex := -1
+        for i, part := range song.Parts {
+            if part.Name == structureName {
+                partIndex = i
+                break
+            }
+        }
+
+        if partIndex == -1 {
+            song.Parts = append(song.Parts, Part{
+                Name:  structureName,
+                Lines: []Line{},
+            })
+            partIndex = len(song.Parts) - 1
+        }
+
+        lineIndex := -1
+        for i, line := range song.Parts[partIndex].Lines {
+            if line.Text == lineText {
+                lineIndex = i
+                break
+            }
+        }
+
+        if lineIndex == -1 {
+            song.Parts[partIndex].Lines = append(song.Parts[partIndex].Lines, Line{
+                Text:   lineText,
+                Chords: []Chord{},
+            })
+            lineIndex = len(song.Parts[partIndex].Lines) - 1
+        }
+
+        if chordPosition.Valid {
+            song.Parts[partIndex].Lines[lineIndex].Chords = append(song.Parts[partIndex].Lines[lineIndex].Chords, Chord{
+                Position: int(chordPosition.Int64),
+                Chord:    chord,
+            })
+        }
+
+        songs[songID] = song
+    }
+
+    if err := rows.Err(); err != nil {
+        log.Printf("Error iterating rows: %v", err)
+        http.Error(w, "Error processing data", http.StatusInternalServerError)
+        return
+    }
+
+    // Crear archivo PDF
+    pdf := gofpdf.New("P", "mm", "A4", "")
+    pdf.SetFont("Courier", "", 12)
+
+    // Crear archivo de texto
+    textFile, err := os.Create("lyrics.txt")
+    if err != nil {
+        log.Printf("Error creating text file: %v", err)
+        http.Error(w, "Error creating text file", http.StatusInternalServerError)
+        return
+    }
+    defer textFile.Close()
+
+    for _, song := range songs {
+        pdf.AddPage()
+
+        // Agregar la fecha del servicio y el tipo de servicio en la parte superior de cada página
+        pdf.SetFont("Courier", "B", 12)
+        pdf.Cell(0, 10, fmt.Sprintf("Fecha del Servicio: %s", serviceDate))
+        pdf.Ln(5)
+        pdf.Cell(0, 10, fmt.Sprintf("Tipo de Servicio: %s", serviceType))
+        pdf.Ln(10)
+
+        pdf.SetFont("Courier", "B", 14)
+        pdf.Cell(0, 10, song.Title)
+        pdf.Ln(10)
+
+        // Agregar la tonalidad, el tiempo y el autor
+        pdf.SetFont("Courier", "", 12)
+        pdf.Cell(0, 10, fmt.Sprintf("Tonalidad: %s", song.Tonality))
+        pdf.Ln(6)
+        pdf.Cell(0, 10, fmt.Sprintf("Tiempo: %d", song.Tempo))
+        pdf.Ln(6)
+        pdf.Cell(0, 10, fmt.Sprintf("Autor: %s", song.Author))
+        pdf.Ln(10)
+
+        // Escribir en el archivo de texto
+        fmt.Fprintf(textFile, "Fecha del Servicio: %s\n", serviceDate)
+        fmt.Fprintf(textFile, "Tipo de Servicio: %s\n", serviceType)
+        fmt.Fprintf(textFile, "Título: %s\n", song.Title)
+        fmt.Fprintf(textFile, "Tonalidad: %s\n", song.Tonality)
+        fmt.Fprintf(textFile, "Tiempo: %d\n", song.Tempo)
+        fmt.Fprintf(textFile, "Autor: %s\n\n", song.Author)
+
+        pdf.SetFont("Courier", "", 12)
+        for _, part := range song.Parts {
+            pdf.SetFont("Courier", "B", 12)
+            pdf.Cell(0, 10, part.Name)
+            pdf.Ln(8)
+
+            // Escribir en el archivo de texto
+            fmt.Fprintf(textFile, "%s\n", part.Name)
+
+            pdf.SetFont("Courier", "", 12)
+            for _, line := range part.Lines {
+                // Imprimir acordes
+                chordLine := make([]rune, len(line.Text))
+                for i := range chordLine {
+                    chordLine[i] = ' '
+                }
+                for _, chord := range line.Chords {
+                    if chord.Position < len(chordLine) {
+                        copy(chordLine[chord.Position:], []rune(chord.Chord))
+                    }
+                }
+                pdf.Cell(0, 10, string(chordLine))
+                pdf.Ln(6)
+
+                // Imprimir texto de la línea
+                pdf.Cell(0, 10, line.Text)
+                pdf.Ln(6)
+
+                // Escribir en el archivo de texto
+                fmt.Fprintf(textFile, "%s\n%s\n", string(chordLine), line.Text)
+            }
+            pdf.Ln(5)
+
+            // Escribir en el archivo de texto
+            fmt.Fprintln(textFile)
+        }
+
+        // Escribir en el archivo de texto
+        fmt.Fprintln(textFile)
+    }
+
+    w.Header().Set("Content-Type", "application/pdf")
+    w.Header().Set("Content-Disposition", "inline; filename=lyrics.pdf")
+    if err := pdf.Output(w); err != nil {
+        log.Printf("Error generating PDF: %v", err)
+        http.Error(w, "Error generating PDF", http.StatusInternalServerError)
+    }
 }

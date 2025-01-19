@@ -86,6 +86,7 @@ def docx_a_texto_con_acordes(input_file, output_file):
         acordes_anterior = ""
         posicion_estructura = 1
         linea_numero = 1
+        id_estructura_actual = None
 
         for i, linea in enumerate(lineas[4:], start=5):
             id_tipo_linea = obtener_id_tipo_linea(linea.strip())
@@ -104,6 +105,10 @@ def docx_a_texto_con_acordes(input_file, output_file):
             elif es_linea_acordes(linea):
                 acordes_anterior = linea
             else:
+                if id_estructura_actual is None:
+                    print(f"Error: No se ha definido una estructura para la línea: '{linea.strip()}'.")
+                    return
+
                 # Insertar línea de la canción
                 instrucciones_lineas.append(
                     f"INSERT INTO `lineas_canciones` (`id_lineas_canciones`, `linea_numero`, `texto`, `id_estructura_canciones`) VALUES"
@@ -152,3 +157,4 @@ def docx_a_texto_con_acordes(input_file, output_file):
 input_file = "cancion.docx"
 output_file = "cancion_procesada.txt"
 docx_a_texto_con_acordes(input_file, output_file)
+
