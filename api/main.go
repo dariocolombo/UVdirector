@@ -240,19 +240,32 @@ func consultaHermanosHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// consultaServiciosHandler maneja la solicitud HTTP POST para consultar servicios
 func consultaServiciosHandler(w http.ResponseWriter, r *http.Request) {
-	servicios, err := consultaServicios()
-	if err != nil {
-		http.Error(w, "Error al obtener los servicios", http.StatusInternalServerError)
-		log.Printf("Error: %v\n", err)
-		return
-	}
+    var requestBody struct {
+        IDServicio *int    `json:"id_servicio"`
+        FechaDesde *string `json:"fecha_desde"`
+        FechaHasta *string `json:"fecha_hasta"`
+    }
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(servicios); err != nil {
-		http.Error(w, "Error al codificar la respuesta", http.StatusInternalServerError)
-		log.Printf("Error al codificar JSON: %v\n", err)
-	}
+    err := json.NewDecoder(r.Body).Decode(&requestBody)
+    if err != nil {
+        http.Error(w, "Invalid JSON", http.StatusBadRequest)
+        return
+    }
+
+    servicios, err := consultaServicios(requestBody.IDServicio, requestBody.FechaDesde, requestBody.FechaHasta)
+    if err != nil {
+        log.Printf("Error fetching services: %v", err)
+        http.Error(w, "Error fetching services", http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    if err := json.NewEncoder(w).Encode(servicios); err != nil {
+        log.Printf("Error encoding response: %v", err)
+        http.Error(w, "Error encoding response", http.StatusInternalServerError)
+    }
 }
 
 func altaServicioHandler(w http.ResponseWriter, r *http.Request) {
@@ -780,72 +793,120 @@ func consultaHermanos() ([]map[string]interface{}, error) {
 	return hermanos, nil
 }
 
-func consultaServicios() ([]map[string]interface{}, error) {
-	query := `
-		SELECT 
-			s.id_servicio,
-			ts.descripcion AS servicio_descripcion,
-			GROUP_CONCAT(DISTINCT CONCAT(h.nombre, ' ', h.apellido) ORDER BY h.nombre, h.apellido SEPARATOR ', ') AS nombre_hermanos,
-			GROUP_CONCAT(DISTINCT cn.nombre ORDER BY cn.nombre SEPARATOR ', ') AS nombre_canciones,
-			DATE_FORMAT(s.ff_programada, '%d/%m/%Y') AS ff_programada
-		FROM 
-			Servicio s
-		INNER JOIN Tipo_Servicio ts ON s.id_tipo_servicio = ts.id_tipo_servicio
-		LEFT JOIN Hermano_Servicio hs ON s.id_servicio = hs.id_servicio
-		LEFT JOIN Hermano h ON hs.id_hermano = h.id_hermano
-		LEFT JOIN Servicio_Cancion sc ON s.id_servicio = sc.id_servicio
-		LEFT JOIN canciones cn ON sc.id_canciones = cn.id_canciones
-		WHERE 
-			s.ff_baja IS NULL
-		GROUP BY 
-			s.id_servicio, ts.descripcion, s.ff_programada
-		ORDER BY 
-			s.ff_programada
-	`
+// consultaServicios consulta los servicios en la base de datos con los filtros proporcionados
+func consultaServicios(idServicio *int, fechaDesde, fechaHasta *string) ([]map[string]interface{}, error) {
+    query := `
+        SELECT 
+            s.id_servicio,
+            s.id_tipo_servicio,
+            s.ff_programada,
+            s.ff_prueba,
+            s.duracion_servicio,
+            s.id_lugar_servicio,
+            s.observaciones,
+            s.ff_alta,
+            s.ff_baja,
+            ts.descripcion AS servicio_descripcion,
+            GROUP_CONCAT(DISTINCT CONCAT(h.nombre, ' ', h.apellido) ORDER BY h.nombre, h.apellido SEPARATOR ', ') AS nombre_hermanos,
+            GROUP_CONCAT(DISTINCT cn.nombre ORDER BY cn.nombre SEPARATOR ', ') AS nombre_canciones
+        FROM 
+            Servicio s
+        INNER JOIN Tipo_Servicio ts ON s.id_tipo_servicio = ts.id_tipo_servicio
+        LEFT JOIN Hermano_Servicio hs ON s.id_servicio = hs.id_servicio
+        LEFT JOIN Hermano h ON hs.id_hermano = h.id_hermano
+        LEFT JOIN Servicio_Cancion sc ON s.id_servicio = sc.id_servicio
+        LEFT JOIN canciones cn ON sc.id_canciones = cn.id_canciones
+        WHERE 
+            s.ff_baja IS NULL
+    `
 
-	rows, err := db.Query(query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+    // Agregar filtros según los parámetros recibidos
+    if idServicio != nil {
+        query += " AND s.id_servicio = ?"
+    } else {
+        if fechaDesde != nil {
+            query += " AND s.ff_programada >= STR_TO_DATE(?, '%d-%m-%Y')"
+        }
+        if fechaHasta != nil {
+            query += " AND s.ff_programada <= STR_TO_DATE(?, '%d-%m-%Y')"
+        }
+    }
 
-	var servicios []map[string]interface{}
-	for rows.Next() {
-		var idServicio int
-		var servicioDescripcion, nombreHermanos, nombreCanciones, ffProgramada *string
+    query += `
+        GROUP BY 
+            s.id_servicio, s.id_tipo_servicio, s.ff_programada, s.ff_prueba, s.duracion_servicio, 
+            s.id_lugar_servicio, s.observaciones, s.ff_alta, s.ff_baja, ts.descripcion
+        ORDER BY 
+            s.ff_programada
+    `
 
-		if err := rows.Scan(&idServicio, &servicioDescripcion, &nombreHermanos, &nombreCanciones, &ffProgramada); err != nil {
-			return nil, err
-		}
+    args := []interface{}{}
+    if idServicio != nil {
+        args = append(args, *idServicio)
+    } else {
+        if fechaDesde != nil {
+            args = append(args, *fechaDesde)
+        }
+        if fechaHasta != nil {
+            args = append(args, *fechaHasta)
+        }
+    }
 
-		hermanos := []string{}
-		if nombreHermanos != nil && *nombreHermanos != "" {
-			hermanos = strings.Split(*nombreHermanos, ", ")
-		}
+    rows, err := db.Query(query, args...)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
 
-		canciones := []string{}
-		if nombreCanciones != nil && *nombreCanciones != "" {
-			canciones = strings.Split(*nombreCanciones, ", ")
-		}
+    var servicios []map[string]interface{}
+    for rows.Next() {
+        var idServicio, idTipoServicio, duracionServicio, idLugarServicio *int
+        var ffProgramada, ffPrueba, ffAlta, ffBaja *string
+        var observaciones, servicioDescripcion, nombreHermanos, nombreCanciones *string
 
-		servicios = append(servicios, map[string]interface{}{
-			"id_servicio":          idServicio,
-			"servicio_descripcion": ifNotNil(servicioDescripcion, ""),
-			"nombre_hermanos":      hermanos,
-			"nombre_canciones":     canciones,
-			"ff_programada":        ifNotNil(ffProgramada, ""),
-		})
-	}
+        if err := rows.Scan(
+            &idServicio, &idTipoServicio, &ffProgramada, &ffPrueba, &duracionServicio,
+            &idLugarServicio, &observaciones, &ffAlta, &ffBaja, &servicioDescripcion,
+            &nombreHermanos, &nombreCanciones,
+        ); err != nil {
+            return nil, err
+        }
 
-	return servicios, nil
+        hermanos := []string{}
+        if nombreHermanos != nil && *nombreHermanos != "" {
+            hermanos = strings.Split(*nombreHermanos, ", ")
+        }
+
+        canciones := []string{}
+        if nombreCanciones != nil && *nombreCanciones != "" {
+            canciones = strings.Split(*nombreCanciones, ", ")
+        }
+
+        servicios = append(servicios, map[string]interface{}{
+            "id_servicio":          ifNotNil(idServicio, 0),
+            "id_tipo_servicio":     ifNotNil(idTipoServicio, 0),
+            "ff_programada":        ifNotNil(ffProgramada, ""),
+            "ff_prueba":            ifNotNil(ffPrueba, ""),
+            "duracion_servicio":    ifNotNil(duracionServicio, 0),
+            "id_lugar_servicio":    ifNotNil(idLugarServicio, 0),
+            "observaciones":        ifNotNil(observaciones, ""),
+            "ff_alta":              ifNotNil(ffAlta, ""),
+            "ff_baja":              ifNotNil(ffBaja, ""),
+            "servicio_descripcion": ifNotNil(servicioDescripcion, ""),
+            "nombre_hermanos":      hermanos,
+            "nombre_canciones":     canciones,
+        })
+    }
+
+    return servicios, nil
 }
 
 // Helper function to handle nil pointers.
-func ifNotNil(ptr *string, defaultValue string) string {
-	if ptr != nil {
-		return *ptr
-	}
-	return defaultValue
+func ifNotNil[T any](ptr *T, defaultValue T) T {
+    if ptr != nil {
+        return *ptr
+    }
+    return defaultValue
 }
 
 
