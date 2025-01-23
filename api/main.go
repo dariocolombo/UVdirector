@@ -808,7 +808,9 @@ func consultaServicios(idServicio *int, fechaDesde, fechaHasta *string) ([]map[s
             s.ff_baja,
             ts.descripcion AS servicio_descripcion,
             GROUP_CONCAT(DISTINCT CONCAT(h.nombre, ' ', h.apellido) ORDER BY h.nombre, h.apellido SEPARATOR ', ') AS nombre_hermanos,
-            GROUP_CONCAT(DISTINCT cn.nombre ORDER BY cn.nombre SEPARATOR ', ') AS nombre_canciones
+            sc.id_canciones,
+            cn.nombre AS nombre_cancion,
+            sc.tonalidad
         FROM 
             Servicio s
         INNER JOIN Tipo_Servicio ts ON s.id_tipo_servicio = ts.id_tipo_servicio
@@ -835,7 +837,8 @@ func consultaServicios(idServicio *int, fechaDesde, fechaHasta *string) ([]map[s
     query += `
         GROUP BY 
             s.id_servicio, s.id_tipo_servicio, s.ff_programada, s.ff_prueba, s.duracion_servicio, 
-            s.id_lugar_servicio, s.observaciones, s.ff_alta, s.ff_baja, ts.descripcion
+            s.id_lugar_servicio, s.observaciones, s.ff_alta, s.ff_baja, ts.descripcion, 
+            sc.id_canciones, cn.nombre, sc.tonalidad
         ORDER BY 
             s.ff_programada
     `
@@ -858,48 +861,61 @@ func consultaServicios(idServicio *int, fechaDesde, fechaHasta *string) ([]map[s
     }
     defer rows.Close()
 
-    var servicios []map[string]interface{}
+    serviciosMap := make(map[int]map[string]interface{})
     for rows.Next() {
         var idServicio, idTipoServicio, duracionServicio, idLugarServicio *int
-        var ffProgramada, ffPrueba, ffAlta, ffBaja *string
-        var observaciones, servicioDescripcion, nombreHermanos, nombreCanciones *string
+        var ffProgramada, ffPrueba, ffAlta, ffBaja, observaciones, servicioDescripcion, nombreHermano *string
+        var idCanciones *int
+        var nombreCancion, tonalidad *string
 
         if err := rows.Scan(
             &idServicio, &idTipoServicio, &ffProgramada, &ffPrueba, &duracionServicio,
             &idLugarServicio, &observaciones, &ffAlta, &ffBaja, &servicioDescripcion,
-            &nombreHermanos, &nombreCanciones,
+            &nombreHermano, &idCanciones, &nombreCancion, &tonalidad,
         ); err != nil {
             return nil, err
         }
 
-        hermanos := []string{}
-        if nombreHermanos != nil && *nombreHermanos != "" {
-            hermanos = strings.Split(*nombreHermanos, ", ")
+        if _, exists := serviciosMap[*idServicio]; !exists {
+            hermanos := []string{}
+            if nombreHermano != nil && *nombreHermano != "" {
+                hermanos = strings.Split(*nombreHermano, ", ")
+            }
+
+            serviciosMap[*idServicio] = map[string]interface{}{
+                "id_servicio":          ifNotNil(idServicio, 0),
+                "id_tipo_servicio":     ifNotNil(idTipoServicio, 0),
+                "ff_programada":        ifNotNil(ffProgramada, ""),
+                "ff_prueba":            ifNotNil(ffPrueba, ""),
+                "duracion_servicio":    ifNotNil(duracionServicio, 0),
+                "id_lugar_servicio":    ifNotNil(idLugarServicio, 0),
+                "observaciones":        ifNotNil(observaciones, ""),
+                "ff_alta":              ifNotNil(ffAlta, ""),
+                "ff_baja":              ifNotNil(ffBaja, ""),
+                "servicio_descripcion": ifNotNil(servicioDescripcion, ""),
+                "nombre_hermanos":      hermanos,
+                "canciones":            []map[string]interface{}{},
+            }
         }
 
-        canciones := []string{}
-        if nombreCanciones != nil && *nombreCanciones != "" {
-            canciones = strings.Split(*nombreCanciones, ", ")
+        if nombreCancion != nil {
+            canciones := serviciosMap[*idServicio]["canciones"].([]map[string]interface{})
+            canciones = append(canciones, map[string]interface{}{
+                "nombre":    ifNotNil(nombreCancion, ""),
+                "tonalidad": ifNotNil(tonalidad, ""),
+            })
+            serviciosMap[*idServicio]["canciones"] = canciones
         }
+    }
 
-        servicios = append(servicios, map[string]interface{}{
-            "id_servicio":          ifNotNil(idServicio, 0),
-            "id_tipo_servicio":     ifNotNil(idTipoServicio, 0),
-            "ff_programada":        ifNotNil(ffProgramada, ""),
-            "ff_prueba":            ifNotNil(ffPrueba, ""),
-            "duracion_servicio":    ifNotNil(duracionServicio, 0),
-            "id_lugar_servicio":    ifNotNil(idLugarServicio, 0),
-            "observaciones":        ifNotNil(observaciones, ""),
-            "ff_alta":              ifNotNil(ffAlta, ""),
-            "ff_baja":              ifNotNil(ffBaja, ""),
-            "servicio_descripcion": ifNotNil(servicioDescripcion, ""),
-            "nombre_hermanos":      hermanos,
-            "nombre_canciones":     canciones,
-        })
+    var servicios []map[string]interface{}
+    for _, servicio := range serviciosMap {
+        servicios = append(servicios, servicio)
     }
 
     return servicios, nil
 }
+
 
 // Helper function to handle nil pointers.
 func ifNotNil[T any](ptr *T, defaultValue T) T {
