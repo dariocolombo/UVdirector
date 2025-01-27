@@ -1,0 +1,189 @@
+{
+    "titulo": "A Dios sea la gloria",
+    "tonalidad_sugerida": "F",
+    "autor": "desconocido",
+    "tiempo": 83,
+    "estructura": [
+        {
+            "tipo": "estrofa",
+            "numero": 1,
+            "lineas": [
+                {
+                    "texto": "A Dios sea la gloria, al mundo El dio",
+                    "acordes": [
+                        {
+                            "acorde": "F",
+                            "ubicacion": 5
+                        },
+                        {
+                            "acorde": "C",
+                            "ubicacion": 27
+                        },
+                        {
+                            "acorde": "F",
+                            "ubicacion": 37
+                        }
+                    ]
+                },
+                {
+                    "texto": "Al Hijo bendito que por nos murió;",
+                    "acordes": [
+                        {
+                            "acorde": "A#",
+                            "ubicacion": 5
+                        },
+                        {
+                            "acorde": "F",
+                            "ubicacion": 13
+                        },
+                        {
+                            "acorde": "G",
+                            "ubicacion": 22
+                        },
+                        {
+                            "acorde": "C",
+                            "ubicacion": 33
+                        }
+                    ]
+                },
+                {
+                    "texto": "Expió los pecados de quien en El cree,",
+                    "acordes": [
+                        {
+                            "acorde": "F",
+                            "ubicacion": 5
+                        },
+                        {
+                            "acorde": "C",
+                            "ubicacion": 25
+                        },
+                        {
+                            "acorde": "F",
+                            "ubicacion": 37
+                        }
+                    ]
+                },
+                {
+                    "texto": "Abriónos la senda hacia Dios por la fe.",
+                    "acordes": [
+                        {
+                            "acorde": "F7",
+                            "ubicacion": 1
+                        },
+                        {
+                            "acorde": "A#",
+                            "ubicacion": 6
+                        },
+                        {
+                            "acorde": "F",
+                            "ubicacion": 14
+                        },
+                        {
+                            "acorde": "C",
+                            "ubicacion": 27
+                        },
+                        {
+                            "acorde": "F",
+                            "ubicacion": 38
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "tipo": "coro",
+            "numero": 1,
+            "lineas": [
+                {
+                    "texto": "¡Gloria a Dios! ¡Gloria a Dios!",
+                    "acordes": [
+                        {
+                            "acorde": "F",
+                            "ubicacion": 13
+                        },
+                        {
+                            "acorde": "F",
+                            "ubicacion": 29
+                        }
+                    ]
+                },
+                {
+                    "texto": "Que de tal modo amó",
+                    "acordes": [
+                        {
+                            "acorde": "F",
+                            "ubicacion": 9
+                        },
+                        {
+                            "acorde": "C",
+                            "ubicacion": 19
+                        }
+                    ]
+                },
+                {
+                    "texto": "Al que lejos de El en pecado se halló;",
+                    "acordes": [
+                        {
+                            "acorde": "Gm",
+                            "ubicacion": 9
+                        },
+                        {
+                            "acorde": "Gm",
+                            "ubicacion": 17
+                        },
+                        {
+                            "acorde": "C",
+                            "ubicacion": 26
+                        },
+                        {
+                            "acorde": "F",
+                            "ubicacion": 37
+                        }
+                    ]
+                },
+                {
+                    "texto": "Venid por el Hijo al gran Dios Salvador,",
+                    "acordes": [
+                        {
+                            "acorde": "F",
+                            "ubicacion": 4
+                        },
+                        {
+                            "acorde": "C",
+                            "ubicacion": 29
+                        },
+                        {
+                            "acorde": "F",
+                            "ubicacion": 38
+                        }
+                    ]
+                },
+                {
+                    "texto": "Y dadle la gloria por tan grande amor.",
+                    "acordes": [
+                        {
+                            "acorde": "F7",
+                            "ubicacion": 1
+                        },
+                        {
+                            "acorde": "A#",
+                            "ubicacion": 6
+                        },
+                        {
+                            "acorde": "F",
+                            "ubicacion": 14
+                        },
+                        {
+                            "acorde": "C",
+                            "ubicacion": 24
+                        },
+                        {
+                            "acorde": "F",
+                            "ubicacion": 36
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

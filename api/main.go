@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"io/ioutil"
 //	"bytes"
 	"github.com/jung-kurt/gofpdf"
 
@@ -92,6 +93,7 @@ func main() {
 	http.HandleFunc("/bajaServicio", bajaServicioHandler)
 	http.HandleFunc("/generar-pdf-letra", generarPDFLetrasHandler)
 	http.HandleFunc("/generar-pdf-letra-cifrado", generarPDFLetrasConAcordesHandler)
+	http.HandleFunc("/alta_cancion", altaCancionHandler)
 
 
 
@@ -500,6 +502,32 @@ func bajaServicioHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Servicio dado de baja exitosamente"))
 }
 
+func altaCancionHandler(w http.ResponseWriter, r *http.Request) {
+	// Validar que el método sea POST
+	if r.Method != http.MethodPost {
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Leer el cuerpo de la solicitud
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error al leer el cuerpo de la solicitud: %v", err), http.StatusInternalServerError)
+		return
+	}
+	defer r.Body.Close()
+
+	// Llamar a la función altaCancion
+	err = altaCancion(string(body))
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error al procesar la solicitud: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Responder con un mensaje de éxito
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte("Canción registrada exitosamente"))
+}
 
 
 func listaCanciones() ([]Cancion, error) {
@@ -1350,4 +1378,126 @@ func generarPDFLetrasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
         log.Printf("Error generating PDF: %v", err)
         http.Error(w, "Error generating PDF", http.StatusInternalServerError)
     }
+}
+
+func altaCancion(jsonInput string) error {
+	// Definir estructuras adaptadas al JSON proporcionado
+	type Acorde struct {
+		IDAcorde    *int   `json:"id_acorde"`
+		Acorde      string `json:"acorde"`
+		Ubicacion   int    `json:"ubicacion"`
+		Grado       int    `json:"grado"`
+		IDTriada    *int   `json:"id_triada"`
+		IDExtension *int   `json:"id_extension"`
+		Duracion    int    `json:"duracion"`
+	}
+
+	type Linea struct {
+		IDLinea    *int     `json:"id_linea"`
+		LineaNumero int     `json:"linea_numero"`
+		Texto       string  `json:"texto"`
+		Acordes     []Acorde `json:"acordes"`
+	}
+
+	type Estructura struct {
+		IDEstructura       *int    `json:"id_estructura"`
+		IDTipoLinea        int     `json:"id_tipo_linea"`
+		TipoLineaNumero    int     `json:"tipo_linea_numero"`
+		PosicionEstructura int     `json:"posicion_estructura"`
+		Lineas             []Linea `json:"lineas"`
+	}
+
+	type Cancion struct {
+		IDCancion         *int         `json:"id_cancion"`
+		Nombre            string       `json:"nombre"`
+		TonalidadSugerida string       `json:"tonalidad_sugerida"`
+		Autor             string       `json:"autor"`
+		Tiempo            int          `json:"tiempo"`
+		EstructuraCancion []Estructura `json:"estructura_cancion"`
+	}
+
+	// Adaptar la estructura al nodo raíz "cancion"
+	type Root struct {
+		Cancion Cancion `json:"cancion"`
+	}
+
+	var root Root
+	err := json.Unmarshal([]byte(jsonInput), &root)
+	if err != nil {
+		return fmt.Errorf("error al parsear JSON: %v", err)
+	}
+
+	cancion := root.Cancion
+
+	// Iniciar una transacción
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("error al iniciar la transacción: %v", err)
+	}
+	defer tx.Rollback()
+
+	// Insertar en la tabla `canciones` y obtener el ID generado
+	query := `
+		INSERT INTO canciones (nombre, tonalidad_sugerida, tiempo, autor) 
+		VALUES (?, ?, ?, ?)`
+	result, err := tx.Exec(query, cancion.Nombre, cancion.TonalidadSugerida, cancion.Tiempo, cancion.Autor)
+	if err != nil {
+		return fmt.Errorf("error al insertar canción: %v", err)
+	}
+
+	cancionID, err := result.LastInsertId()
+	if err != nil {
+		return fmt.Errorf("error al obtener ID de la canción: %v", err)
+	}
+
+	// Procesar la estructura de la canción
+	for _, estructura := range cancion.EstructuraCancion {
+		// Insertar en la tabla `estructura_canciones`
+		query = `
+			INSERT INTO estructura_canciones (id_canciones, id_tipo_linea, tipo_linea_numero, posicion_estructura) 
+			VALUES (?, ?, ?, ?)`
+		result, err = tx.Exec(query, cancionID, estructura.IDTipoLinea, estructura.TipoLineaNumero, estructura.PosicionEstructura)
+		if err != nil {
+			return fmt.Errorf("error al insertar estructura: %v", err)
+		}
+
+		estructuraID, err := result.LastInsertId()
+		if err != nil {
+			return fmt.Errorf("error al obtener ID de la estructura: %v", err)
+		}
+
+		for _, linea := range estructura.Lineas {
+			// Insertar en la tabla `lineas_canciones`
+			query = `
+				INSERT INTO lineas_canciones (linea_numero, texto, id_estructura_canciones) 
+				VALUES (?, ?, ?)`
+			result, err = tx.Exec(query, linea.LineaNumero, linea.Texto, estructuraID)
+			if err != nil {
+				return fmt.Errorf("error al insertar línea: %v", err)
+			}
+
+			lineaID, err := result.LastInsertId()
+			if err != nil {
+				return fmt.Errorf("error al obtener ID de la línea: %v", err)
+			}
+
+			for _, acorde := range linea.Acordes {
+				// Insertar en la tabla `acordes_linea`
+				query = `
+					INSERT INTO acordes_linea (id_lineas_canciones, ubicacion, grado, id_triadas, id_extensiones, duracion) 
+					VALUES (?, ?, ?, ?, ?, ?)`
+				_, err = tx.Exec(query, lineaID, acorde.Ubicacion, acorde.Grado, acorde.IDTriada, acorde.IDExtension, acorde.Duracion)
+				if err != nil {
+					return fmt.Errorf("error al insertar acorde: %v", err)
+				}
+			}
+		}
+	}
+
+	// Confirmar la transacción
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("error al confirmar la transacción: %v", err)
+	}
+
+	return nil
 }
