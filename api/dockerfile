@@ -1,11 +1,17 @@
 # Usa una imagen base de Go
 FROM golang:1.23-alpine
 
-# Instala herramientas necesarias
-RUN apk add --no-cache git
+# Instala herramientas necesarias (git, python3 y pip)
+RUN apk add --no-cache git python3 py3-pip
 
 # Crea un directorio de trabajo
 WORKDIR /app
+
+# Configura un entorno virtual de Python
+RUN python3 -m venv /venv
+
+# Activa el entorno virtual y instala python-docx
+RUN /venv/bin/pip install python-docx
 
 # Copia los archivos de módulo de Go
 COPY go.mod go.sum ./
@@ -19,6 +25,11 @@ COPY . .
 # Compila el binario
 RUN go build -o main .
 
-# Define el comando por defecto
-CMD ["./main"]
+# Copia el script de inicio
+COPY start.sh .
 
+# Asegúrate de que el script de inicio sea ejecutable
+RUN chmod +x start.sh
+
+# Define el comando por defecto para ejecutar el script de inicio
+CMD ["./start.sh"]

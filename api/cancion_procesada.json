@@ -1,0 +1,474 @@
+{
+    "cancion": {
+        "id_cancion": null,
+        "nombre": "Vamos a cantar",
+        "tonalidad_sugerida": "C",
+        "autor": "En Espiritu y en Verdad",
+        "tiempo": 85,
+        "estructura_cancion": [
+            {
+                "id_estructura": null,
+                "id_tipo_linea": 4,
+                "tipo_linea_numero": 1,
+                "posicion_estructura": 1,
+                "lineas": [
+                    {
+                        "id_linea": null,
+                        "linea_numero": 1,
+                        "texto": ".",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 1,
+                                "acorde": "C",
+                                "grado": 1,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id_estructura": null,
+                "id_tipo_linea": 1,
+                "tipo_linea_numero": 1,
+                "posicion_estructura": 2,
+                "lineas": [
+                    {
+                        "id_linea": null,
+                        "linea_numero": 1,
+                        "texto": "Amamos todo de ti",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 1,
+                                "acorde": "C",
+                                "grado": 1,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id_linea": null,
+                        "linea_numero": 2,
+                        "texto": "Cielo y tierra te adoran",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 1,
+                                "acorde": "C",
+                                "grado": 1,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id_linea": null,
+                        "linea_numero": 3,
+                        "texto": "Los reinos se rinden",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 1,
+                                "acorde": "Am",
+                                "grado": 10,
+                                "id_triada": 1,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id_linea": null,
+                        "linea_numero": 4,
+                        "texto": "Hijo de Dios",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 1,
+                                "acorde": "Am",
+                                "grado": 10,
+                                "id_triada": 1,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id_linea": null,
+                        "linea_numero": 5,
+                        "texto": "Tú eres por quien",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 16,
+                                "acorde": "G",
+                                "grado": 8,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id_linea": null,
+                        "linea_numero": 6,
+                        "texto": "Tú eres por quien",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 16,
+                                "acorde": "F",
+                                "grado": 6,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id_linea": null,
+                        "linea_numero": 7,
+                        "texto": "Vivimos hoy",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 10,
+                                "acorde": "C",
+                                "grado": 1,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id_estructura": null,
+                "id_tipo_linea": 1,
+                "tipo_linea_numero": 2,
+                "posicion_estructura": 3,
+                "lineas": [
+                    {
+                        "id_linea": null,
+                        "linea_numero": 1,
+                        "texto": "Tú eres quien nos liberta",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 1,
+                                "acorde": "C",
+                                "grado": 1,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id_linea": null,
+                        "linea_numero": 2,
+                        "texto": "Tú eres la Luz que guía",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 1,
+                                "acorde": "C",
+                                "grado": 1,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id_linea": null,
+                        "linea_numero": 3,
+                        "texto": "Como un fuego ardiente",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 1,
+                                "acorde": "Am",
+                                "grado": 10,
+                                "id_triada": 1,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id_linea": null,
+                        "linea_numero": 4,
+                        "texto": "Hijo de Dios",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 1,
+                                "acorde": "Am",
+                                "grado": 10,
+                                "id_triada": 1,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id_linea": null,
+                        "linea_numero": 5,
+                        "texto": "Tú eres por quien",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 16,
+                                "acorde": "G",
+                                "grado": 8,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id_linea": null,
+                        "linea_numero": 6,
+                        "texto": "Tú eres por quien",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 16,
+                                "acorde": "F",
+                                "grado": 6,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id_linea": null,
+                        "linea_numero": 7,
+                        "texto": "Vivimos hoy",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 10,
+                                "acorde": "C",
+                                "grado": 1,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id_estructura": null,
+                "id_tipo_linea": 2,
+                "tipo_linea_numero": 1,
+                "posicion_estructura": 4,
+                "lineas": [
+                    {
+                        "id_linea": null,
+                        "linea_numero": 1,
+                        "texto": "Vamos a cantar con la música del cielo",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 7,
+                                "acorde": "C",
+                                "grado": 1,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id_linea": null,
+                        "linea_numero": 2,
+                        "texto": "Vamos a cantar alegres porque escuchas",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 7,
+                                "acorde": "Am",
+                                "grado": 10,
+                                "id_triada": 1,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id_linea": null,
+                        "linea_numero": 3,
+                        "texto": "Cuando cantamos para exaltar tu nombre",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 9,
+                                "acorde": "G",
+                                "grado": 8,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            },
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 20,
+                                "acorde": "F",
+                                "grado": 6,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            },
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 34,
+                                "acorde": "C",
+                                "grado": 1,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id_estructura": null,
+                "id_tipo_linea": 3,
+                "tipo_linea_numero": 1,
+                "posicion_estructura": 5,
+                "lineas": [
+                    {
+                        "id_linea": null,
+                        "linea_numero": 1,
+                        "texto": ". ,  ,  ,",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 1,
+                                "acorde": "C",
+                                "grado": 1,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            },
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 3,
+                                "acorde": "A#",
+                                "grado": 11,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            },
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 6,
+                                "acorde": "Am",
+                                "grado": 10,
+                                "id_triada": 1,
+                                "id_extension": null,
+                                "duracion": 0
+                            },
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 9,
+                                "acorde": "C",
+                                "grado": 1,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id_estructura": null,
+                "id_tipo_linea": 2,
+                "tipo_linea_numero": 2,
+                "posicion_estructura": 6,
+                "lineas": [
+                    {
+                        "id_linea": null,
+                        "linea_numero": 1,
+                        "texto": "Vamos a cantar con la música del cielo",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 7,
+                                "acorde": "C",
+                                "grado": 1,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id_linea": null,
+                        "linea_numero": 2,
+                        "texto": "Vamos a cantar alegres porque escuchas",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 7,
+                                "acorde": "Am",
+                                "grado": 10,
+                                "id_triada": 1,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    },
+                    {
+                        "id_linea": null,
+                        "linea_numero": 3,
+                        "texto": "Cuando cantamos para exaltar tu nombre",
+                        "acordes": [
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 9,
+                                "acorde": "G",
+                                "grado": 8,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            },
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 20,
+                                "acorde": "F",
+                                "grado": 6,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            },
+                            {
+                                "id_acorde": null,
+                                "ubicacion": 34,
+                                "acorde": "C",
+                                "grado": 1,
+                                "id_triada": null,
+                                "id_extension": null,
+                                "duracion": 0
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

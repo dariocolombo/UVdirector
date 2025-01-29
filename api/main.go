@@ -10,6 +10,10 @@ import (
 	"strings"
 	"time"
 	"io/ioutil"
+	"io"
+	"os/exec"
+	"path/filepath"
+//	"sort"
 //	"bytes"
 	"github.com/jung-kurt/gofpdf"
 
@@ -94,6 +98,7 @@ func main() {
 	http.HandleFunc("/generar-pdf-letra", generarPDFLetrasHandler)
 	http.HandleFunc("/generar-pdf-letra-cifrado", generarPDFLetrasConAcordesHandler)
 	http.HandleFunc("/alta_cancion", altaCancionHandler)
+	http.HandleFunc("/subir_cancion", subirCancionHandler)
 
 
 
@@ -527,6 +532,82 @@ func altaCancionHandler(w http.ResponseWriter, r *http.Request) {
 	// Responder con un mensaje de éxito
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("Canción registrada exitosamente"))
+}
+
+func subirCancionHandler(w http.ResponseWriter, r *http.Request) {
+    // Verifica que la solicitud sea POST
+    if r.Method != http.MethodPost {
+        http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+        return
+    }
+
+    // Parsear el formulario con un límite de 10MB para archivos
+    err := r.ParseMultipartForm(10 << 20)
+    if err != nil {
+        http.Error(w, "Error al parsear el formulario", http.StatusBadRequest)
+        return
+    }
+
+    // Obtener el archivo del formulario
+    file, handler, err := r.FormFile("archivo")
+    if err != nil {
+        http.Error(w, "Error obteniendo el archivo", http.StatusBadRequest)
+        return
+    }
+    defer file.Close()
+
+    // Crear un archivo temporal para guardar el archivo recibido
+    tempDir := os.TempDir()
+    tempFilePath := filepath.Join(tempDir, handler.Filename)
+
+    tempFile, err := os.Create(tempFilePath)
+    if err != nil {
+        http.Error(w, "Error creando el archivo temporal", http.StatusInternalServerError)
+        return
+    }
+    defer tempFile.Close()
+
+    // Copiar el contenido del archivo recibido al archivo temporal
+    _, err = io.Copy(tempFile, file)
+    if err != nil {
+        http.Error(w, "Error guardando el archivo", http.StatusInternalServerError)
+        return
+    }
+
+    // Definir el archivo de salida JSON
+    outputFile := filepath.Join(tempDir, "cancion_procesada.json")
+
+    // Ejecutar el script Python
+    cmd := exec.Command("python3", "DocxToJSON.py", tempFilePath, outputFile)
+    cmd.Stdout = os.Stdout
+    cmd.Stderr = os.Stderr
+
+    err = cmd.Run()
+    if err != nil {
+        http.Error(w, fmt.Sprintf("Error ejecutando DocxToJSON: %v", err), http.StatusInternalServerError)
+        return
+    }
+
+    // Verificar si el archivo JSON se generó correctamente
+    if _, err := os.Stat(outputFile); os.IsNotExist(err) {
+        http.Error(w, "El archivo JSON no se generó", http.StatusInternalServerError)
+        return
+    }
+
+    // Leer el archivo JSON generado
+    jsonData, err := os.ReadFile(outputFile)
+    if err != nil {
+        http.Error(w, fmt.Sprintf("Error leyendo el archivo JSON: %v", err), http.StatusInternalServerError)
+        return
+    }
+
+    // Responder con el JSON
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(jsonData)
+
+    // Eliminar archivos temporales después de responder
+    os.Remove(tempFilePath)
+    os.Remove(outputFile)
 }
 
 
@@ -1379,6 +1460,7 @@ func generarPDFLetrasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Error generating PDF", http.StatusInternalServerError)
     }
 }
+
 
 func altaCancion(jsonInput string) error {
 	// Definir estructuras adaptadas al JSON proporcionado
