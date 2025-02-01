@@ -1325,7 +1325,8 @@ func generarPDFLetrasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
         song := songs[songID]
 
         // Crear un identificador único para cada parte basado en su posición en la estructura
-        partName := fmt.Sprintf("%s %d", structureName, structurePosition)
+
+        partName := fmt.Sprintf("%d.%s",structurePosition,structureName)
 
         partIndex := -1
         for i, part := range song.Parts {
@@ -1426,7 +1427,9 @@ func generarPDFLetrasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
             pdf.Ln(8)
 
             // Escribir en el archivo de texto
-            fmt.Fprintf(textFile, "%s\n", part.Name)
+            
+
+			fmt.Fprintf(textFile, "%s\n", part.Name)
 
             pdf.SetFont("Courier", "", 12)
             for _, line := range part.Lines {
