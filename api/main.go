@@ -1206,6 +1206,7 @@ func generarPDFLetrasHandler(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+
 func generarPDFLetrasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
     var requestBody struct {
         ServiceID int `json:"id_servicio"`
@@ -1248,7 +1249,8 @@ func generarPDFLetrasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
             lc.texto AS line_text,
             al.ubicacion-1 AS chord_position,
             concat((select codigo from tonalidades where grado=al.grado+sc.tonalidad-1),ifnull((select triadas from triadas where id_triadas=al.id_triadas),''),ifnull((select extensiones from extensiones where id_extensiones=al.id_extensiones),'')) AS chord,
-            sc.tonalidad AS service_tonality
+            sc.tonalidad AS service_tonality,
+            ec.posicion_estructura AS structure_position
         FROM Servicio_Cancion sc
         INNER JOIN canciones c ON sc.id_canciones = c.id_canciones
         INNER JOIN estructura_canciones ec ON c.id_canciones = ec.id_canciones
@@ -1296,8 +1298,9 @@ func generarPDFLetrasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
         var tempo sql.NullInt64
         var chordPosition sql.NullInt64
         var serviceTonality int
+        var structurePosition int
 
-        if err := rows.Scan(&songID, &title, &tonalityCode, &tempo, &author, &structureName, &lineText, &chordPosition, &chord, &serviceTonality); err != nil {
+        if err := rows.Scan(&songID, &title, &tonalityCode, &tempo, &author, &structureName, &lineText, &chordPosition, &chord, &serviceTonality, &structurePosition); err != nil {
             log.Printf("Error processing data: %v", err)
             http.Error(w, "Error processing data", http.StatusInternalServerError)
             return
@@ -1320,9 +1323,13 @@ func generarPDFLetrasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
         }
 
         song := songs[songID]
+
+        // Crear un identificador único para cada parte basado en su posición en la estructura
+        partName := fmt.Sprintf("%s %d", structureName, structurePosition)
+
         partIndex := -1
         for i, part := range song.Parts {
-            if part.Name == structureName {
+            if part.Name == partName {
                 partIndex = i
                 break
             }
@@ -1330,7 +1337,7 @@ func generarPDFLetrasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
 
         if partIndex == -1 {
             song.Parts = append(song.Parts, Part{
-                Name:  structureName,
+                Name:  partName,
                 Lines: []Line{},
             })
             partIndex = len(song.Parts) - 1
@@ -1433,11 +1440,13 @@ func generarPDFLetrasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
                         copy(chordLine[chord.Position:], []rune(chord.Chord))
                     }
                 }
-                pdf.Cell(0, 10, string(chordLine))
+                pdf.SetFont("Courier", "B", 12)
+				pdf.Cell(0, 10, string(chordLine))
                 pdf.Ln(6)
 
                 // Imprimir texto de la línea
-                pdf.Cell(0, 10, line.Text)
+                pdf.SetFont("Courier", "", 12)
+				pdf.Cell(0, 10, line.Text)
                 pdf.Ln(6)
 
                 // Escribir en el archivo de texto
@@ -1460,7 +1469,6 @@ func generarPDFLetrasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Error generating PDF", http.StatusInternalServerError)
     }
 }
-
 
 func altaCancion(jsonInput string) error {
 	// Definir estructuras adaptadas al JSON proporcionado
@@ -1583,3 +1591,5 @@ func altaCancion(jsonInput string) error {
 
 	return nil
 }
+
+
