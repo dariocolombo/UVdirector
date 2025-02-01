@@ -1082,13 +1082,19 @@ func generarPDFLetrasHandler(w http.ResponseWriter, r *http.Request) {
         SELECT 
             c.id_canciones AS song_id, 
             c.nombre AS title, 
+            t.codigo AS tonality_code,
+            c.tiempo AS tempo,
+            c.autor AS author,
             tl.descripcion AS structure_name,
-            lc.texto AS line_text
+            lc.texto AS line_text,
+            sc.tonalidad AS service_tonality,
+            ec.posicion_estructura AS structure_position
         FROM Servicio_Cancion sc
         INNER JOIN canciones c ON sc.id_canciones = c.id_canciones
         INNER JOIN estructura_canciones ec ON c.id_canciones = ec.id_canciones
         INNER JOIN lineas_canciones lc ON ec.id_estructura_canciones = lc.id_estructura_canciones
         INNER JOIN tipos_linea tl ON ec.id_tipo_linea = tl.id
+        LEFT JOIN tonalidades t ON sc.tonalidad = t.grado
         WHERE sc.id_servicio = ?
         ORDER BY c.id_canciones, ec.posicion_estructura, lc.linea_numero;
     `
@@ -1109,37 +1115,52 @@ func generarPDFLetrasHandler(w http.ResponseWriter, r *http.Request) {
         Lines []Line
     }
     type Song struct {
-        Title string
-        Parts []Part
+        Title    string
+        Tonality string
+        Tempo    int
+        Author   string
+        Parts    []Part
     }
 
     songs := make(map[int]Song)
 
     for rows.Next() {
         var songID int
-        var title, structureName, lineText string
+        var title, tonalityCode, author, structureName, lineText string
+        var tempo sql.NullInt64
+        var serviceTonality int
+        var structurePosition int
 
-        if err := rows.Scan(&songID, &title, &structureName, &lineText); err != nil {
+        if err := rows.Scan(&songID, &title, &tonalityCode, &tempo, &author, &structureName, &lineText, &serviceTonality, &structurePosition); err != nil {
             log.Printf("Error processing data: %v", err)
             http.Error(w, "Error processing data", http.StatusInternalServerError)
             return
         }
 
         title = strings.ToUpper(removeAccents(title))
+        tonalityCode = strings.ToUpper(removeAccents(tonalityCode))
+        author = strings.ToUpper(removeAccents(author))
         structureName = strings.ToUpper(removeAccents(structureName))
         lineText = strings.ToUpper(removeAccents(lineText))
 
         if _, exists := songs[songID]; !exists {
             songs[songID] = Song{
-                Title: title,
-                Parts: []Part{},
+                Title:    title,
+                Tonality: tonalityCode,
+                Tempo:    int(tempo.Int64),
+                Author:   author,
+                Parts:    []Part{},
             }
         }
 
         song := songs[songID]
+
+        // Crear un identificador único para cada parte basado en su posición en la estructura
+        partName := fmt.Sprintf("%d.%s", structurePosition, structureName)
+
         partIndex := -1
         for i, part := range song.Parts {
-            if part.Name == structureName {
+            if part.Name == partName {
                 partIndex = i
                 break
             }
@@ -1147,15 +1168,26 @@ func generarPDFLetrasHandler(w http.ResponseWriter, r *http.Request) {
 
         if partIndex == -1 {
             song.Parts = append(song.Parts, Part{
-                Name:  structureName,
+                Name:  partName,
                 Lines: []Line{},
             })
             partIndex = len(song.Parts) - 1
         }
 
-        song.Parts[partIndex].Lines = append(song.Parts[partIndex].Lines, Line{
-            Text: lineText,
-        })
+        lineIndex := -1
+        for i, line := range song.Parts[partIndex].Lines {
+            if line.Text == lineText {
+                lineIndex = i
+                break
+            }
+        }
+
+        if lineIndex == -1 {
+            song.Parts[partIndex].Lines = append(song.Parts[partIndex].Lines, Line{
+                Text: lineText,
+            })
+            lineIndex = len(song.Parts[partIndex].Lines) - 1
+        }
 
         songs[songID] = song
     }
@@ -1166,6 +1198,7 @@ func generarPDFLetrasHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    // Crear archivo PDF
     pdf := gofpdf.New("P", "mm", "A4", "")
     pdf.SetFont("Courier", "", 12)
 
@@ -1183,6 +1216,15 @@ func generarPDFLetrasHandler(w http.ResponseWriter, r *http.Request) {
         pdf.Cell(0, 10, song.Title)
         pdf.Ln(10)
 
+        // Agregar la tonalidad, el tiempo y el autor
+        pdf.SetFont("Courier", "", 12)
+        pdf.Cell(0, 10, fmt.Sprintf("Tonalidad: %s", song.Tonality))
+        pdf.Ln(6)
+        pdf.Cell(0, 10, fmt.Sprintf("Tiempo: %d", song.Tempo))
+        pdf.Ln(6)
+        pdf.Cell(0, 10, fmt.Sprintf("Autor: %s", song.Author))
+        pdf.Ln(10)
+
         pdf.SetFont("Courier", "", 12)
         for _, part := range song.Parts {
             pdf.SetFont("Courier", "B", 12)
@@ -1191,6 +1233,7 @@ func generarPDFLetrasHandler(w http.ResponseWriter, r *http.Request) {
 
             pdf.SetFont("Courier", "", 12)
             for _, line := range part.Lines {
+                // Imprimir texto de la línea
                 pdf.Cell(0, 10, line.Text)
                 pdf.Ln(6)
             }
@@ -1325,8 +1368,7 @@ func generarPDFLetrasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
         song := songs[songID]
 
         // Crear un identificador único para cada parte basado en su posición en la estructura
-
-        partName := fmt.Sprintf("%d.%s",structurePosition,structureName)
+        partName := fmt.Sprintf("%d.%s", structurePosition, structureName)
 
         partIndex := -1
         for i, part := range song.Parts {
@@ -1380,15 +1422,6 @@ func generarPDFLetrasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
     pdf := gofpdf.New("P", "mm", "A4", "")
     pdf.SetFont("Courier", "", 12)
 
-    // Crear archivo de texto
-    textFile, err := os.Create("lyrics.txt")
-    if err != nil {
-        log.Printf("Error creating text file: %v", err)
-        http.Error(w, "Error creating text file", http.StatusInternalServerError)
-        return
-    }
-    defer textFile.Close()
-
     for _, song := range songs {
         pdf.AddPage()
 
@@ -1412,24 +1445,11 @@ func generarPDFLetrasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
         pdf.Cell(0, 10, fmt.Sprintf("Autor: %s", song.Author))
         pdf.Ln(10)
 
-        // Escribir en el archivo de texto
-        fmt.Fprintf(textFile, "Fecha del Servicio: %s\n", serviceDate)
-        fmt.Fprintf(textFile, "Tipo de Servicio: %s\n", serviceType)
-        fmt.Fprintf(textFile, "Título: %s\n", song.Title)
-        fmt.Fprintf(textFile, "Tonalidad: %s\n", song.Tonality)
-        fmt.Fprintf(textFile, "Tiempo: %d\n", song.Tempo)
-        fmt.Fprintf(textFile, "Autor: %s\n\n", song.Author)
-
         pdf.SetFont("Courier", "", 12)
         for _, part := range song.Parts {
             pdf.SetFont("Courier", "B", 12)
             pdf.Cell(0, 10, part.Name)
             pdf.Ln(8)
-
-            // Escribir en el archivo de texto
-            
-
-			fmt.Fprintf(textFile, "%s\n", part.Name)
 
             pdf.SetFont("Courier", "", 12)
             for _, line := range part.Lines {
@@ -1444,25 +1464,16 @@ func generarPDFLetrasConAcordesHandler(w http.ResponseWriter, r *http.Request) {
                     }
                 }
                 pdf.SetFont("Courier", "B", 12)
-				pdf.Cell(0, 10, string(chordLine))
+                pdf.Cell(0, 10, string(chordLine))
                 pdf.Ln(6)
 
                 // Imprimir texto de la línea
                 pdf.SetFont("Courier", "", 12)
-				pdf.Cell(0, 10, line.Text)
+                pdf.Cell(0, 10, line.Text)
                 pdf.Ln(6)
-
-                // Escribir en el archivo de texto
-                fmt.Fprintf(textFile, "%s\n%s\n", string(chordLine), line.Text)
             }
             pdf.Ln(5)
-
-            // Escribir en el archivo de texto
-            fmt.Fprintln(textFile)
         }
-
-        // Escribir en el archivo de texto
-        fmt.Fprintln(textFile)
     }
 
     w.Header().Set("Content-Type", "application/pdf")
